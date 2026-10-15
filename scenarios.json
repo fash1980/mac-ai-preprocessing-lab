@@ -108,13 +108,19 @@
       ]
     ]
   },
-  {
-    Title: Scenario 3 — Pressure Injury Image Quality (Medium · Image)
-Description: A pressure-injury classification dataset based on PIID contains (I1) a reference image, (I2) an artificially blurred version of I1, (I3) an exact duplicate of I1 under a different filename, and (I4) a different PIID image intentionally assigned the wrong stage label for this teaching exercise. Identify the preprocessing and dataset-quality risks.
+  
+{
+  "title": "Scenario 3 — Pressure Injury Image Quality (Medium · Image)",
+  "description": "A pressure-injury classification dataset based on PIID contains four examples: I1 is a reference image, I2 is an artificially blurred version of I1, I3 is an exact duplicate of I1 saved under a different filename, and I4 is a different PIID image intentionally assigned an incorrect stage label for this teaching exercise.",
+  "questions": [
+    "a. Identify the data-quality or preprocessing problem associated with I2, I3 and I4.",
+    "b. Which images should be retained, removed or investigated before model training? Justify your decisions.",
+    "c. Explain how duplicate images appearing in both training and testing datasets can produce misleading model evaluation results.",
+    "d. Why can excessive image filtering or enhancement reduce the reliability of pressure-injury classification?"
+  ],
+  "table": []
+},
 
-    ],
-    "table": []
-  },
   {
     "title": "Scenario 4 — Sensor Signal Cleaning (Medium · Numerical/Visual)",
     "description": "An EEG monitoring system records a clean signal, a signal with random noise, and a third signal processed using an excessively strong smoothing filter. The third signal looks smoother but its sharp peaks are much smaller.",
