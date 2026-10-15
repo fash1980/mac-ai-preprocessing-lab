@@ -14,7 +14,7 @@ typing_input = components.declare_component(
 st.set_page_config(page_title="MAC | Preprocessing Pitfalls Lab", page_icon="🧠", layout="wide")
 SCENARIOS = json.loads((Path(__file__).parent / 'scenarios.json').read_text(encoding='utf-8'))
 
-st.title("Machine Learning Preprocessing Pitfalls")
+st.title("Machine Learning Preprocessing Tutorial Week 4")
 
 
 @st.cache_resource
