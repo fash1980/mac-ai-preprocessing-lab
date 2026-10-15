@@ -122,7 +122,7 @@
 },
 
   {
-    "title": "Scenario 4 — Sensor Signal Cleaning (Medium · Numerical/Visual)",
+    "title": "Scenario 4 — Sensor Signal Cleaning ",
     "description": "An EEG monitoring system records a clean signal, a signal with random noise, and a third signal processed using an excessively strong smoothing filter. The third signal looks smoother but its sharp peaks are much smaller.",
     "questions": [
       "a. Why is the smoothest signal not necessarily the best input for an AI model?",
@@ -164,7 +164,7 @@
     ]
   },
   {
-    "title": "Scenario 6 — Hidden Leakage in Patient Prediction (Challenging · Workflow)",
+    "title": "Scenario 6 — Hidden Leakage in Patient Prediction ",
     "description": "A team predicts hospital-acquired infections. Its features include age, temperature on admission, antibiotics prescribed after infection confirmation, and average glucose. The team imputes and scales all patient records, then randomly splits them into train and test sets. Some patients have multiple visits.",
     "questions": [
       "a. Identify two distinct forms of data leakage in this scenario.",
@@ -176,7 +176,7 @@
     "table": []
   },
   {
-    "title": "Scenario 7 — Feature Selection Trap (Challenging · Numerical/Reasoning)",
+    "title": "Scenario 7 — Feature Selection Trap ",
     "description": "A bank selects features for fraud prediction. Candidate inputs are transaction amount, time of transaction, customer ID, number of transactions in the previous 15 minutes, and an investigation outcome entered two days later. The team computes feature importance using all records, including the test set.",
     "questions": [
       "a. Which candidate feature clearly leaks future information? Justify using prediction time.",
@@ -187,7 +187,7 @@
     "table": []
   },
   {
-    "title": "Scenario 8 — The “Best” Model (Medium–Challenging · Evaluation)",
+    "title": "Scenario 8 — The “Best” Model ",
     "description": "A team evaluates two models and obtains these illustrative results:",
     "questions": [
       "a. Which model shows the larger validation–test performance gap? Quantify it.",
