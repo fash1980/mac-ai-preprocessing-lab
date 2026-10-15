@@ -1,0 +1,217 @@
+[
+  {
+    "title": "Scenario 1 — The Hospital Dataset (Easy · Numerical)",
+    "description": "A hospital is preparing records to predict diabetes. Inspect the following data:",
+    "questions": [
+      "a. Identify three different data-quality problems and the patient record associated with each.",
+      "b. For the missing glucose value, would you use mean, median or KNN imputation? Justify using the displayed readings.",
+      "c. Should glucose = 900 be deleted immediately? Explain one check you would perform first.",
+      "d. What is the risk of keeping both P05 records in training and evaluation?"
+    ],
+    "table": [
+      [
+        "Patient",
+        "Age",
+        "Glucose",
+        "Blood Pressure",
+        "Diagnosis"
+      ],
+      [
+        "P01",
+        "45",
+        "180",
+        "120",
+        "Yes"
+      ],
+      [
+        "P02",
+        "35",
+        "Missing",
+        "130",
+        "No"
+      ],
+      [
+        "P03",
+        "-5",
+        "150",
+        "125",
+        "Yes"
+      ],
+      [
+        "P04",
+        "60",
+        "900",
+        "Missing",
+        "Yes"
+      ],
+      [
+        "P05",
+        "40",
+        "110",
+        "115",
+        "No"
+      ],
+      [
+        "P05",
+        "40",
+        "110",
+        "115",
+        "No"
+      ]
+    ]
+  },
+  {
+    "title": "Scenario 2 — Transactions on Different Scales (Easy–Medium · Numerical)",
+    "description": "A fraud detection system uses Transaction_Amount (RM), Login_Count and Account_Age (years). A sample is shown below:",
+    "questions": [
+      "a. If a KNN model is trained without scaling, which feature is most likely to dominate distance calculations? Why?",
+      "b. Compare Min–Max and Robust scaling for Transaction_Amount. Which would you choose here, and why?",
+      "c. If you switch from KNN to Random Forest, is scaling equally important? Justify.",
+      "d. Should the RM10,000 transaction automatically be treated as fraudulent or removed? Explain."
+    ],
+    "table": [
+      [
+        "Account",
+        "Amount (RM)",
+        "Login count",
+        "Account age"
+      ],
+      [
+        "A",
+        "100",
+        "3",
+        "2"
+      ],
+      [
+        "B",
+        "150",
+        "4",
+        "5"
+      ],
+      [
+        "C",
+        "200",
+        "2",
+        "8"
+      ],
+      [
+        "D",
+        "250",
+        "5",
+        "10"
+      ],
+      [
+        "E",
+        "10000",
+        "3",
+        "4"
+      ]
+    ]
+  },
+  {
+    "title": "Scenario 3 — Suspicious Images (Medium · Image)",
+    "description": "A medical-image classification dataset contains: (I1) a clear chest X-ray, (I2) a severely blurred chest X-ray, (I3) the same patient’s X-ray saved twice under different filenames, and (I4) a photograph of a hospital corridor labelled “chest X-ray”.",
+    "questions": [
+      "a. Which images require an image-quality check, duplication check, or label/content check? Explain for each.",
+      "b. Would you always remove I2? Give one condition under which retaining it may be appropriate.",
+      "c. What could happen if I1 and I3 appear in different train/test splits?",
+      "d. If all images are resized, what information might be lost by stretching without preserving aspect ratio?"
+    ],
+    "table": []
+  },
+  {
+    "title": "Scenario 4 — Sensor Signal Cleaning (Medium · Numerical/Visual)",
+    "description": "An EEG monitoring system records a clean signal, a signal with random noise, and a third signal processed using an excessively strong smoothing filter. The third signal looks smoother but its sharp peaks are much smaller.",
+    "questions": [
+      "a. Why is the smoothest signal not necessarily the best input for an AI model?",
+      "b. Name one useful signal feature that excessive filtering might remove.",
+      "c. How would you compare the original, noisy and filtered signals before deciding which to use?"
+    ],
+    "table": []
+  },
+  {
+    "title": "Scenario 5 — Text Embeddings and Semantic Similarity (Medium–Challenging · Text)",
+    "description": "A support-ticket model converts text into embeddings. The query is “The customer cannot log into the account.” Three tickets have the following cosine similarities to the query:",
+    "questions": [
+      "a. Rank the three tickets by semantic relevance. Why might T3 be highly similar despite using a different language?",
+      "b. A new system removes stop words, punctuation and negation words before embedding. Explain how removing “not” could change the meaning of a complaint.",
+      "c. Should raw text and pretrained embeddings always undergo identical preprocessing? Explain one risk of overprocessing text.",
+      "d. If you select embedding dimensions based on correlation with labels using the entire dataset before splitting, what methodological risk arises?"
+    ],
+    "table": [
+      [
+        "Ticket",
+        "Text",
+        "Cosine similarity"
+      ],
+      [
+        "T1",
+        "I cannot sign in to my profile.",
+        "0.92"
+      ],
+      [
+        "T2",
+        "My account was charged twice.",
+        "0.41"
+      ],
+      [
+        "T3",
+        "Saya tidak boleh log masuk ke akaun.",
+        "0.86"
+      ]
+    ]
+  },
+  {
+    "title": "Scenario 6 — Hidden Leakage in Patient Prediction (Challenging · Workflow)",
+    "description": "A team predicts hospital-acquired infections. Its features include age, temperature on admission, antibiotics prescribed after infection confirmation, and average glucose. The team imputes and scales all patient records, then randomly splits them into train and test sets. Some patients have multiple visits.",
+    "questions": [
+      "a. Identify two distinct forms of data leakage in this scenario.",
+      "b. Which feature is unavailable at the intended early prediction time, and why is it problematic?",
+      "c. Propose the correct order of splitting, imputation and scaling.",
+      "d. Would patient-wise splitting be preferable to row-wise splitting here? Explain.",
+      "e. The model achieves 98% test accuracy. What evidence would you need before trusting this result?"
+    ],
+    "table": []
+  },
+  {
+    "title": "Scenario 7 — Feature Selection Trap (Challenging · Numerical/Reasoning)",
+    "description": "A bank selects features for fraud prediction. Candidate inputs are transaction amount, time of transaction, customer ID, number of transactions in the previous 15 minutes, and an investigation outcome entered two days later. The team computes feature importance using all records, including the test set.",
+    "questions": [
+      "a. Which candidate feature clearly leaks future information? Justify using prediction time.",
+      "b. How can the 15-minute transaction count be constructed without using future transactions?",
+      "c. Why can feature selection performed on the full dataset produce misleading test performance?",
+      "d. Which feature would you investigate for memorization or poor generalization, and why?"
+    ],
+    "table": []
+  },
+  {
+    "title": "Scenario 8 — The “Best” Model (Medium–Challenging · Evaluation)",
+    "description": "A team evaluates two models and obtains these illustrative results:",
+    "questions": [
+      "a. Which model shows the larger validation–test performance gap? Quantify it.",
+      "b. Give two plausible explanations for Model B’s performance drop; do not assume the cause from accuracy values alone.",
+      "c. The team repeatedly tunes Model B using final test accuracy. What is wrong with this practice?",
+      "d. Which model would you investigate further before deployment, and what check would you run next?"
+    ],
+    "table": [
+      [
+        "Model",
+        "Training accuracy",
+        "Validation accuracy",
+        "Final test accuracy"
+      ],
+      [
+        "A",
+        "94%",
+        "91%",
+        "89%"
+      ],
+      [
+        "B",
+        "99%",
+        "96%",
+        "73%"
+      ]
+    ]
+  }
+]
