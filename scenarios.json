@@ -132,7 +132,7 @@
     "table": []
   },
   {
-    "title": "Scenario 5 — Text Embeddings and Semantic Similarity (Medium–Challenging · Text)",
+    "title": "Scenario 5 — Text Embeddings and Semantic Similarity",
     "description": "A support-ticket model converts text into embeddings. The query is “The customer cannot log into the account.” Three tickets have the following cosine similarities to the query:",
     "questions": [
       "a. Rank the three tickets by semantic relevance. Why might T3 be highly similar despite using a different language?",
