@@ -61,7 +61,7 @@
     ]
   },
   {
-    "title": "Scenario 2 — Transactions on Different Scales (Easy–Medium · Numerical)",
+    "title": "Scenario 2 — Transactions on Different Scales",
     "description": "A fraud detection system uses Transaction_Amount (RM), Login_Count and Account_Age (years). A sample is shown below:",
     "questions": [
       "a. If a KNN model is trained without scaling, which feature is most likely to dominate distance calculations? Why?",
