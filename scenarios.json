@@ -109,7 +109,7 @@
     ]
   },
   {
-    "title": "Scenario 3 — Suspicious Images (Medium · Image)",
+    "title": "Scenario 3 — Suspicious Images ",
     "description": "A medical-image classification dataset contains: (I1) a clear chest X-ray, (I2) a severely blurred chest X-ray, (I3) the same patient’s X-ray saved twice under different filenames, and (I4) a photograph of a hospital corridor labelled “chest X-ray”.",
     "questions": [
       "a. Which images require an image-quality check, duplication check, or label/content check? Explain for each.",
