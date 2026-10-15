@@ -64,17 +64,24 @@ elif selection == 1:
     st.bar_chart(pd.DataFrame({'Account':list('ABCDE'),'Value':values}).set_index('Account'))
     
 elif selection == 2:
-    st.caption("Illustrative image-quality comparison (synthetic examples; not real X-rays).")
-    from PIL import Image, ImageFilter
-    arr=np.zeros((90,120),dtype=np.uint8)+32
-    yy,xx=np.mgrid[:90,:120]
-    arr += np.uint8(130*np.exp(-((xx-58)**2+(yy-45)**2)/280))
-    img=Image.fromarray(arr,mode='L')
-    cols=st.columns(3)
-    cols[0].image(img,caption='I1: illustrative clear pattern',use_container_width=True)
-    cols[1].image(img.filter(ImageFilter.GaussianBlur(radius=8)),caption='I2: synthetic blur',use_container_width=True)
-    cols[2].image(img.copy(),caption='I3: identical copy',use_container_width=True)
-    st.info("The original scenario includes I4: a corridor photograph mislabeled as an X-ray. No clinical images are supplied here.")
+    st.caption("PIID pressure-injury images. I2 is artificially blurred; I3 is an exact copy; I4 has an intentionally incorrect teaching label. Not for clinical interpretation.")
+    image_dir = Path(__file__).parent / "scenario3_images"
+    image_files = [
+        "I1_reference.jpg",
+        "I2_blurred.jpg",
+        "I3_duplicate.jpg",
+        "I4_wrong_label.jpg",
+    ]
+    captions = [
+        "I1 — Reference image (PIID, stage 1 filename)",
+        "I2 — Artificially blurred copy of I1",
+        "I3 — Exact duplicate of I1 (different filename)",
+        "I4 — Different PIID image (stage 3 filename), deliberately mislabelled 'stage 1' for this exercise",
+    ]
+    cols = st.columns(4)
+    for col, filename, caption in zip(cols, image_files, captions):
+        with col:
+            st.image(str(image_dir / filename), caption=caption, use_container_width=True)
 elif selection == 3:
     t=np.linspace(0,2,320)
     clean=np.sin(2*np.pi*4*t)+0.45*np.exp(-((t-1.06)/.035)**2)
