@@ -2,11 +2,15 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 import streamlit as st
+import streamlit.components.v1 as components
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
-
+typing_input = components.declare_component(
+    "typing_input",
+    path=str(Path(__file__).parent / "typing_input")
+)
 st.set_page_config(page_title="MAC | Preprocessing Pitfalls Lab", page_icon="🧠", layout="wide")
 SCENARIOS = json.loads((Path(__file__).parent / 'scenarios.json').read_text(encoding='utf-8'))
 
@@ -101,7 +105,16 @@ st.divider()
 st.markdown('#### Type your analysis')
 for j, question in enumerate(scenario['questions']):
     st.markdown(f'**{question}**')
-    st.text_area('Your answer',key=f'answer_{selection}_{j}',height=100,label_visibility='collapsed',placeholder='Type a concise scenario-specific explanation...')
+        answer_key = f'answer_{selection}_{j}'
+
+    typed = typing_input(
+        value=st.session_state.get(answer_key, ''),
+        key=f'custom_{answer_key}',
+        default=st.session_state.get(answer_key, '')
+    )
+
+    if typed is not None:
+        st.session_state[answer_key] = typed
 
 answers={s['title']:{q:st.session_state.get(f'answer_{i}_{j}','').strip() for j,q in enumerate(s['questions'])} for i,s in enumerate(SCENARIOS)}
 answered=sum(bool(a) for v in answers.values() for a in v.values())
