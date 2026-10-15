@@ -48,7 +48,7 @@ if selection == 0:
     method = st.selectbox("Compare glucose imputation method", ["Mean", "Median"], key='imputation')
     estimate = float(readings.mean() if method=='Mean' else np.median(readings))
     st.metric("Estimated P02 glucose", f"{estimate:.1f}")
-    st.caption("Demonstration only: in a model evaluation, fit imputation using training records only.")
+    st.caption("Please remember that this activity is for demonstration purposes only. In actual machine learning model development, imputation should be fitted using the training data only to prevent data leakage and ensure reliable model evaluation.")
 elif selection == 1:
     st.caption("Explore the effect of scaling on transaction amounts.")
     amounts = np.array([100,150,200,250,10000],dtype=float)
