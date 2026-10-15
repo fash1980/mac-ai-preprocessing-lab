@@ -37,7 +37,7 @@ with st.sidebar:
     student_name = st.text_input("Name", key='student_name')
     st.divider()
     selection = st.radio("Choose a scenario", options=list(range(len(SCENARIOS))), format_func=lambda i: f"Scenario {i+1}")
-    st.caption("Responses stay in this browser session until submitted or the session is lost. No browser-side paste prevention is enforced.")
+    
 
 scenario = SCENARIOS[selection]
 st.subheader(scenario['title'])
