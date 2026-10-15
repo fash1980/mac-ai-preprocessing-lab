@@ -1,0 +1,195 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    color: #293040;
+}
+
+textarea {
+    width: 100%;
+    height: 105px;
+    border: 1px solid #b7bec9;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 14px;
+    resize: vertical;
+}
+
+textarea:focus {
+    outline: 2px solid #ff4b4b;
+}
+
+#notice {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    padding: 12px;
+}
+
+#dialog {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 430px;
+}
+
+button {
+    background: #ff4b4b;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 16px;
+    cursor: pointer;
+}
+
+#hint {
+    color: #777;
+    font-size: 12px;
+    margin-top: 7px;
+}
+</style>
+</head>
+
+<body>
+
+<textarea id="answer"
+placeholder="Type your analysis here..."></textarea>
+
+<div id="hint">
+Manual typing only. Copy-paste is restricted.
+</div>
+
+<div id="notice" role="alertdialog" aria-modal="true">
+    <div id="dialog">
+        <h3>Copy-Paste Restricted</h3>
+        <p>
+        Copy-paste has been blocked for this activity
+        by the tutorial designer.
+        </p>
+        <p>Please type your analysis manually.</p>
+        <button id="close">OK</button>
+    </div>
+</div>
+
+<script>
+const area = document.getElementById("answer");
+const notice = document.getElementById("notice");
+const close = document.getElementById("close");
+
+let initialized = false;
+let timer = null;
+let lastSent = null;
+
+function send(type, data = {}) {
+    window.parent.postMessage({
+        isStreamlitMessage: true,
+        type: type,
+        ...data
+    }, "*");
+}
+
+function showWarning(event) {
+    if (event) event.preventDefault();
+    notice.style.display = "flex";
+    close.focus();
+}
+
+close.addEventListener("click", function() {
+    notice.style.display = "none";
+    area.focus();
+});
+
+area.addEventListener("paste", showWarning);
+area.addEventListener("drop", showWarning);
+
+area.addEventListener("dragover", function(e) {
+    e.preventDefault();
+});
+
+area.addEventListener("beforeinput", function(e) {
+    if ([
+        "insertFromPaste",
+        "insertFromDrop",
+        "insertFromYank"
+    ].includes(e.inputType)) {
+        showWarning(e);
+    }
+});
+
+area.addEventListener("keydown", function(e) {
+    if (
+        (e.ctrlKey || e.metaKey) &&
+        e.key.toLowerCase() === "v"
+    ) {
+        showWarning(e);
+    }
+
+    if (e.shiftKey && e.key === "Insert") {
+        showWarning(e);
+    }
+});
+
+area.addEventListener("contextmenu", function(e) {
+    e.preventDefault();
+    showWarning(e);
+});
+
+area.addEventListener("input", function() {
+    clearTimeout(timer);
+
+    timer = setTimeout(function() {
+        lastSent = area.value;
+        send("streamlit:setComponentValue", {
+            value: area.value
+        });
+    }, 450);
+});
+
+window.addEventListener("message", function(e) {
+    if (e.data?.type !== "streamlit:render") return;
+
+    const args = e.data.args || {};
+
+    if (!initialized) {
+        area.value = args.value || "";
+        lastSent = area.value;
+        initialized = true;
+    } else if (
+        document.activeElement !== area &&
+        typeof args.value === "string" &&
+        args.value !== lastSent
+    ) {
+        area.value = args.value;
+        lastSent = args.value;
+    }
+
+    send("streamlit:setFrameHeight", {
+        height: 240
+    });
+});
+
+send("streamlit:componentReady", {
+    apiVersion: 1
+});
+
+send("streamlit:setFrameHeight", {
+    height: 240
+});
+</script>
+
+</body>
+</html>
