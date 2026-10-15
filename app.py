@@ -105,7 +105,7 @@ st.divider()
 st.markdown('#### Type your analysis')
 for j, question in enumerate(scenario['questions']):
     st.markdown(f'**{question}**')
-        answer_key = f'answer_{selection}_{j}'
+    answer_key = f'answer_{selection}_{j}'
 
     typed = typing_input(
         value=st.session_state.get(answer_key, ''),
