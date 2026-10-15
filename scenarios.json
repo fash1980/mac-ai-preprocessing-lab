@@ -110,7 +110,7 @@
   },
   
 {
-  "title": "Scenario 3 — Pressure Injury Image Quality (Medium · Image)",
+  "title": "Scenario 3 — Pressure Injury Image Quality ",
   "description": "A pressure-injury classification dataset based on PIID contains four examples: I1 is a reference image, I2 is an artificially blurred version of I1, I3 is an exact duplicate of I1 saved under a different filename, and I4 is a different PIID image intentionally assigned an incorrect stage label for this teaching exercise.",
   "questions": [
     "a. Identify the data-quality or preprocessing problem associated with I2, I3 and I4.",
