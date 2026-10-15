@@ -139,4 +139,4 @@ with st.expander('Review and submit'):
         except Exception:
             st.error('Submission failed. Inform your tutor; the answers have not been confirmed as saved.')
 
-st.caption('Instructor note: student IDs are self-declared in this starter version. Add university authentication and rate limiting before high-stakes use. Paste blocking is not a reliable integrity control.')
+
