@@ -11,7 +11,7 @@ st.set_page_config(page_title="MAC | Preprocessing Pitfalls Lab", page_icon="�
 SCENARIOS = json.loads((Path(__file__).parent / 'scenarios.json').read_text(encoding='utf-8'))
 
 st.title("Machine Learning Preprocessing Pitfalls")
-st.caption("MAC · Applied Artificial Intelligence · Scenario-based interactive tutorial")
+
 
 @st.cache_resource
 def database_client(url, secret):
