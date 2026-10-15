@@ -62,7 +62,7 @@ elif selection == 1:
         q25,q75=np.quantile(amounts,[.25,.75]); values=(amounts-np.median(amounts))/(q75-q25)
     else: values=amounts
     st.bar_chart(pd.DataFrame({'Account':list('ABCDE'),'Value':values}).set_index('Account'))
-    st.caption('Illustration fitted on shown sample only, not a recommended full-dataset training workflow.')
+    
 elif selection == 2:
     st.caption("Illustrative image-quality comparison (synthetic examples; not real X-rays).")
     from PIL import Image, ImageFilter
