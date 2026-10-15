@@ -1,6 +1,6 @@
 [
   {
-    "title": "Scenario 1 — The Hospital Dataset (Easy · Numerical)",
+    "title": "Scenario 1 — The Hospital Dataset",
     "description": "A hospital is preparing records to predict diabetes. Inspect the following data:",
     "questions": [
       "a. Identify three different data-quality problems and the patient record associated with each.",
