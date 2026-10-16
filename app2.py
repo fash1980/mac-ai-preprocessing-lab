@@ -1,0 +1,74 @@
+import json
+from datetime import datetime, timezone
+from pathlib import Path
+import streamlit as st
+
+st.set_page_config(page_title="MAC | Week 4 Practical Submission", page_icon="📎", layout="wide")
+st.title("Week 4 Practical — Colab Evidence Submission")
+st.caption("MAC · Applied Artificial Intelligence · Separate from the Scenario Tutorial")
+st.info("Complete the Colab notebooks first. Submit screenshots of your OWN executed outputs and type a brief analysis. Uploading a notebook or copying code is not the submission task.")
+
+@st.cache_resource
+def client(url,key):
+    from supabase import create_client
+    return create_client(url,key)
+
+def get_db():
+    try:
+        url=st.secrets["SUPABASE_URL"]
+        key=st.secrets["SUPABASE_SERVICE_ROLE_KEY"]
+        if url and key:return client(url,key)
+    except (KeyError,FileNotFoundError):pass
+    return None
+
+db=get_db()
+if db is None:
+    st.warning("Database not configured. Do not share with students yet; submissions cannot be saved.")
+with st.form("practical_form",clear_on_submit=False):
+    left,right=st.columns(2)
+    with left:
+        student_id=st.text_input("Student ID",max_chars=40)
+        student_name=st.text_input("Student name",max_chars=100)
+    with right:
+        task=st.selectbox("Practical task",["Task 1 — Numerical","Task 2 — Multimodal"])
+        token=st.text_input("Colab run token (from notebook E0)",max_chars=32)
+    st.markdown("#### Evidence screenshots")
+    st.caption("Upload 2–5 screenshots (PNG/JPG), preferably E0 with your token and 1–4 output cells. Maximum 4 MB per image. Do not include any real patient information.")
+    shots=st.file_uploader("Screenshot evidence",type=["png","jpg","jpeg"],accept_multiple_files=True)
+    analysis=st.text_area("Type your evidence-based analysis (100–220 words)",height=180,placeholder="Refer to your actual Colab results. Which result changed after preprocessing, and why? Explain a limitation.")
+    checklist=st.checkbox("I have executed the notebook and the screenshots are from my own Colab session.")
+    submit=st.form_submit_button("Submit practical evidence",type="primary",disabled=db is None)
+
+if submit:
+    problems=[]
+    if len(student_id.strip())<4:problems.append("Enter a valid Student ID.")
+    if not student_name.strip():problems.append("Enter your name.")
+    if len(token.strip())<8:problems.append("Enter the run token shown in Colab.")
+    if not 2<=len(shots or [])<=5:problems.append("Upload 2–5 screenshots.")
+    words=len(analysis.split())
+    if not 100<=words<=220:problems.append(f"Analysis must contain 100–220 words (current: {words}).")
+    if not checklist:problems.append("Please confirm the declaration.")
+    if shots:
+        for shot in shots:
+            if shot.size>4*1024*1024:problems.append(f"{shot.name} is over 4 MB.")
+    if problems:
+        for p in problems:st.error(p)
+    else:
+        import uuid
+        submission_id=uuid.uuid4().hex
+        prefix=f"{submission_id}"
+        uploaded=[]
+        try:
+            for i,shot in enumerate(shots):
+                data=shot.getvalue()
+                content_type="image/png" if shot.name.lower().endswith('.png') else "image/jpeg"
+                path=f"{prefix}/evidence_{i+1}.{'png' if content_type=='image/png' else 'jpg'}"
+                db.storage.from_("practical-evidence").upload(path,data,{"content-type":content_type,"upsert":"false"})
+                uploaded.append(path)
+            payload={"submission_id":submission_id,"student_id":student_id.strip(),"student_name":student_name.strip(),"task_name":task,"run_token":token.strip().upper(),"analysis":analysis.strip(),"evidence_paths":uploaded,"submitted_at":datetime.now(timezone.utc).isoformat()}
+            db.table("practical_submissions").insert(payload).execute()
+            st.success(f"Submission saved. Receipt: {submission_id[:12].upper()}. Keep this receipt.")
+        except Exception:
+            st.error("Submission could not be confirmed. Please contact your tutor and retry. Uploaded files may remain as orphans until cleaned by the instructor.")
+
+st.caption("Student IDs are self-declared, not institutionally authenticated. Screenshot evidence cannot prove independent authorship. Instructor should review individual results and do spot viva checks before grading.")
