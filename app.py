@@ -97,6 +97,31 @@ elif selection == 3:
 elif selection == 4:
     st.caption('The cosine-similarity scores in the table are provided for reasoning. They are illustrative, not computed by a live embedding model.')
     st.info('Compare T1/T2/T3 by the stated scores, then consider the effect of removing negation or preprocessing pretrained embeddings.')
+    
+    st.info("""
+    **Understanding Cosine Similarity**
+
+    Text embeddings convert sentences into numerical vectors
+    representing their meaning.
+
+    Cosine similarity measures the similarity between two
+    vectors based on the angle between them.
+
+    **How to interpret the scores:**
+    - Close to 1: Very similar meaning
+    - Close to 0: Little or no semantic similarity
+    - Close to -1: Opposite vector directions
+      (not necessarily opposite meanings)
+
+    **Example from the table:**
+    - T1 (0.92): High similarity
+    - T2 (0.41): Lower similarity
+    - T3 (0.86): High similarity despite being in Malay
+
+    **Note:** A higher score suggests greater semantic
+    similarity, but does not guarantee identical meaning.
+    """)
+
 elif selection == 5:
     st.caption('Compare workflow orders: train-set-only fitting vs full-dataset preprocessing.')
     st.code('Incorrect: entire dataset → impute / scale → row-wise split → train / evaluate\nCorrect: patient-wise split → fit imputer and scaler on training data → transform test → evaluate',language='text')
