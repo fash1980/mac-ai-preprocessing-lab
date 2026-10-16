@@ -15,7 +15,8 @@ st.set_page_config(
     page_title="Tutorial 4 AAI | Data Wrangling",
     page_icon="preprocessing_icon.png.jpg",
     layout="wide"
-)SCENARIOS = json.loads((Path(__file__).parent / 'scenarios.json').read_text(encoding='utf-8'))
+)
+SCENARIOS = json.loads((Path(__file__).parent / 'scenarios.json').read_text(encoding='utf-8'))
 
 st.title("Machine Learning Preprocessing Tutorial Week 4")
 
