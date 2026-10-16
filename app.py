@@ -11,7 +11,11 @@ typing_input = components.declare_component(
     "typing_input",
     path=str(Path(__file__).parent / "typing_input")
 )
-st.set_page_config(page_title="MAC | Preprocessing Pitfalls Lab", page_icon="🧠", layout="wide")
+st.set_page_config(
+    page_title="Tutorial 4 AAI | Data Wrangling",
+    page_icon="preprocessing_icon.png",
+    layout="wide"
+)
 SCENARIOS = json.loads((Path(__file__).parent / 'scenarios.json').read_text(encoding='utf-8'))
 
 st.title("Machine Learning Preprocessing Tutorial Week 4")
