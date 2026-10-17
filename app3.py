@@ -69,7 +69,7 @@ with st.sidebar:
     st.header('Student details')
     student_name=st.text_input('Full name *',key='lab4_name')
     student_id=st.text_input('Student ID *',key='lab4_id')
-    group=st.text_input('Class / Group (optional)',key='lab4_group')
+    group=st.text_input('Practical Group',key='lab4_group')
     st.divider()
     st.caption('Submission requires every question to have an answer. The PDF is generated locally in this Streamlit session. Upload it to MyTimes as directed by your instructor.')
 
