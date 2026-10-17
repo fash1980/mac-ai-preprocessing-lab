@@ -1,0 +1,14 @@
+<!doctype html><html><head><meta charset="UTF-8"><style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:#172238;background:transparent}textarea{width:100%;min-height:122px;border:1px solid #b6c5d7;border-radius:9px;padding:12px;resize:vertical;font:15px/1.5 system-ui;outline:none;background:white}textarea:focus{border:2px solid #215b9b}small{display:block;color:#66758b;margin:5px 1px} .warning{color:#b34725;display:none}
+</style></head><body><textarea id="a" placeholder="Type your investigation findings here (paste disabled)..." autocomplete="off" spellcheck="true"></textarea><small>Type your observations. Copy/paste, right-click and drag-drop are blocked inside this answer field.</small><small class="warning" id="w">Please type your response manually.</small>
+<script>
+const ta=document.getElementById('a'),w=document.getElementById('w');let initialized=false;let disabled=false;
+function send(type,obj={}){window.parent.postMessage({isStreamlitMessage:true,type,...obj},'*')}
+function setHeight(){send('streamlit:setFrameHeight',{height:Math.max(173,document.body.scrollHeight+7)})}
+function block(e){e.preventDefault();e.stopPropagation();w.style.display='block';setHeight()}
+['paste','copy','cut','drop','dragover','contextmenu'].forEach(k=>ta.addEventListener(k,block));
+ta.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&['v','c','x','insert'].includes(e.key.toLowerCase()))block(e);if(e.shiftKey&&e.key==='Insert')block(e)});
+ta.addEventListener('input',()=>{send('streamlit:setComponentValue',{value:ta.value,dataType:'json'});setHeight()});
+window.addEventListener('message',e=>{if(e.data?.type==='streamlit:render'){const args=e.data.args||{};if(!initialized){ta.value=args.default||'';initialized=true}ta.placeholder=args.placeholder||ta.placeholder;setHeight()}});
+send('streamlit:componentReady',{apiVersion:1});setHeight();
+</script></body></html>
