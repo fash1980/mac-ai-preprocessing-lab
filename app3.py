@@ -71,7 +71,19 @@ with st.sidebar:
     student_id=st.text_input('Student ID *',key='lab4_id')
     group=st.text_input('Practical Group',key='lab4_group')
     st.divider()
-    st.caption('Submission requires every question to have an answer. The PDF is generated locally in this Streamlit session. Upload it to MyTimes as directed by your instructor.')
+    st.markdown("""
+<div style="font-family: Arial, sans-serif; font-size: 17px; line-height: 1.9;">
+
+<b>Submission Instructions:</b>
+<ul>
+    <li>All questions must be answered before submission.</li>
+    <li>Your completed answers will be automatically generated as a PDF.</li>
+    <li>Download the generated PDF after completing the worksheet.</li>
+    <li>Upload the PDF to <b>MyTimes</b> as instructed by your lecturer.</li>
+</ul>
+
+</div>
+""", unsafe_allow_html=True)
 
 with st.expander('Instructions — read before starting',expanded=True):
     st.markdown('''1. Open **Edit Topologies.pka** in Cisco Packet Tracer and save a working copy.
