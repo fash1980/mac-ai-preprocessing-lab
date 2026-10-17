@@ -103,8 +103,7 @@ st.markdown("""
         <li>Type your observations into the provided answer fields.</li>
         <li>Copy Paste is disabled in this activity</li>
         <li>For all the answers you need to explore Edit Topologies.pka </b>.</li>
-        
-    </ul>
+     </ul>
 </div>
 """, unsafe_allow_html=True)
 with st.sidebar:
