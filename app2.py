@@ -5,7 +5,7 @@ import streamlit as st
 
 st.set_page_config(page_title="MAC | Week 4 Practical Submission", page_icon="📎", layout="wide")
 st.title("Week 4 Practical — Colab Evidence Submission")
-st.caption("MAC · Applied Artificial Intelligence · Separate from the Scenario Tutorial")
+
 st.info("Complete the Colab notebooks first. Submit screenshots of your OWN executed outputs and type a brief analysis. Uploading a notebook or copying code is not the submission task.")
 
 @st.cache_resource
