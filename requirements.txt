@@ -4,3 +4,4 @@ numpy>=1.24
 plotly>=5.20
 pillow>=10
 supabase>=2.5,<3
+reportlab>=4.0
