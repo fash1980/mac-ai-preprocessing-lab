@@ -82,7 +82,30 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-st.info('Use the actual Edit Topologies.pka activity to investigate every question. Type observations into the answer fields. Your completed answers can be downloaded as a PDF for submission to MyTimes.')
+st.markdown("""
+<div style="
+    background-color: #F2F4F7;
+    border: 1px solid #B5D0E0;
+    border-left: 5px solid #176B9A;
+    border-radius: 8px;
+    padding: 18px 24px;
+    font-family: Arial, sans-serif;
+    font-size: 17px;
+    color: #18324B;
+    line-height: 1.9;
+    margin-bottom: 20px;
+">
+    <div style="font-size: 20px; font-weight: bold; margin-bottom: 8px;">
+        Lab Instructions
+    </div>
+    <ul style="margin: 0; padding-left: 25px;">
+        <li>Use the actual <b>Edit Topologies.pka</b> activity to investigate every question.</li>
+        <li>Type your observations into the provided answer fields.</li>
+        <li>Download your completed answers as a <b>PDF</b>.</li>
+        <li>Submit the generated PDF to <b>MyTimes</b>.</li>
+    </ul>
+</div>
+""", unsafe_allow_html=True)
 with st.sidebar:
     st.header('Student details')
     student_name=st.text_input('Full name *',key='lab4_name')
