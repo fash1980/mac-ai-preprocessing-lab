@@ -140,6 +140,12 @@ if submit:
             db.table("practical_submissions").insert(payload).execute()
             st.success(f"Submission saved. Receipt: {submission_id[:12].upper()}. Keep this receipt.")
         except Exception:
-            st.error("Submission could not be confirmed. Contact your tutor and retry. Uploaded files may remain in storage until cleaned up by the instructor.")
+                    except Exception as e:
+            import logging
+            logging.exception("Practical submission failed")
+            st.error(
+                "Submission failed. Please check the Streamlit "
+                "application logs for the detailed error."
+            )
 
 st.caption("Student IDs are self-declared. Paste restrictions are browser-side deterrents, not proof of independent authorship. Review the Colab evidence and conduct spot viva checks before grading.")
