@@ -17,7 +17,10 @@ from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, KeepTogether, HRFlowable
+from reportlab.platypus import (
+    SimpleDocTemplate, Paragraph, Spacer,
+    KeepTogether, HRFlowable, Image
+)
 from streamlit.components.v1 import declare_component
 
 ROOT = Path(__file__).parent
@@ -39,7 +42,7 @@ styles.add(ParagraphStyle(name='LabSection',parent=styles['Heading2'],fontSize=1
 styles.add(ParagraphStyle(name='LabQ',parent=styles['Heading3'],fontSize=10.5,leading=15,spaceAfter=5))
 styles.add(ParagraphStyle(name='LabAnswer',parent=styles['Normal'],fontSize=9.5,leading=14,spaceAfter=12))
 
-def make_pdf(name,student_id,group,answers):
+def make_pdf(name, student_id, group, answers, screenshots):
     buf=BytesIO()
     doc=SimpleDocTemplate(buf,pagesize=A4,rightMargin=18*mm,leftMargin=18*mm,topMargin=18*mm,bottomMargin=18*mm,title='Computer Networks Lab 4 Exploratory Analysis')
     story=[Paragraph('COMPUTER NETWORKS LAB 4',styles['LabTitle']),Paragraph('Exploratory Analysis — Student Submission',styles['LabTitle']),HRFlowable(width='100%',thickness=1,color=colors.HexColor('#c3d3e4')),Spacer(1,6*mm)]
@@ -53,7 +56,31 @@ def make_pdf(name,student_id,group,answers):
         response=escape(answers[i]).replace('\n','<br/>')
         question=Paragraph(escape(q['title'])+' — '+escape(q['question']),styles['LabQ'])
         answer=Paragraph('<b>Student answer:</b><br/>'+response,styles['LabAnswer'])
-        story.append(KeepTogether([question,answer]))
+        story.append(question)
+story.append(answer)
+
+if screenshots[i] is not None:
+    screenshot_data = BytesIO(screenshots[i])
+    screenshot_img = Image(screenshot_data)
+
+    max_width = 165 * mm
+    max_height = 110 * mm
+
+    scale = min(
+        max_width / screenshot_img.imageWidth,
+        max_height / screenshot_img.imageHeight,
+        1.0
+    )
+
+    screenshot_img.drawWidth = screenshot_img.imageWidth * scale
+    screenshot_img.drawHeight = screenshot_img.imageHeight * scale
+
+    story.append(Paragraph(
+        "<b>Packet Tracer Screenshot Evidence:</b>",
+        styles["LabSub"]
+    ))
+    story.append(screenshot_img)
+    story.append(Spacer(1, 5 * mm))
     story.append(Paragraph('This document reproduces the answers entered by the student. It does not certify correctness or completion of the Packet Tracer .pka activity.',styles['LabSub']))
     def footer(canvas, doc):
         canvas.saveState();canvas.setFont('Helvetica',8);canvas.setFillColor(colors.grey)
@@ -138,9 +165,11 @@ with st.expander('Instructions — read before starting',expanded=True):
 st.image(str(ROOT / 'city_topology.png'),caption='City-level topology: Home, ISP, Library and Office (from the original activity)',use_container_width=False,width=680)
 
 
-section_name=None
-answers=[]
-for i,q in enumerate(QUESTIONS):
+section_name = None
+answers = []
+screenshots = []
+
+for i, q in enumerate(QUESTIONS):
     if q['section']!=section_name:
         section_name=q['section']; st.divider();st.header(section_name)
         if section_name=='B. Office Cluster':
@@ -153,6 +182,26 @@ for i,q in enumerate(QUESTIONS):
         st.caption(q['prompt'])
         value=ANSWER_WIDGET(key=f'lab4_answer_{i}',default='',placeholder=f'Type your findings for {q["title"]}...')
         answers.append((value or '').strip() if isinstance(value,str) else '')
+        st.markdown("**Packet Tracer Screenshot Evidence**")
+
+uploaded_file = st.file_uploader(
+    "Upload screenshot for this question",
+    type=["png", "jpg", "jpeg"],
+    key=f"lab4_screenshot_{i}"
+)
+
+if uploaded_file is not None:
+    screenshot_bytes = uploaded_file.getvalue()
+    screenshots.append(screenshot_bytes)
+
+    st.image(
+        screenshot_bytes,
+        caption=f"Evidence for Q{i+1}: {q['title']}",
+        width=550
+    )
+    st.success("Screenshot uploaded successfully.")
+else:
+    screenshots.append(None)
 
 answered=sum(bool(x) for x in answers)
 st.divider()
@@ -162,9 +211,31 @@ with st.container(border=True):
     st.write(f'**Student:** {student_name or "Not entered"} | **ID:** {student_id or "Not entered"}')
     missing=[i+1 for i,x in enumerate(answers) if len(x)<25]
     if missing:st.warning('Write at least 25 characters for each answer. Incomplete: '+', '.join('Q'+str(i) for i in missing))
-    ready=bool(student_name.strip() and student_id.strip() and not missing)
+    missing_screenshots = [
+    i + 1 for i, img in enumerate(screenshots)
+    if img is None
+]
+
+if missing_screenshots:
+    st.warning(
+        "Screenshot evidence missing for: " +
+        ", ".join(f"Q{i}" for i in missing_screenshots)
+    )
+
+ready = bool(
+    student_name.strip()
+    and student_id.strip()
+    and not missing
+    and not missing_screenshots
+)
     if not ready:st.caption('Provide name, Student ID and all 21 responses to enable the download.')
-    pdf_bytes=make_pdf(student_name.strip(),student_id.strip(),group.strip(),answers) if ready else b''
+    pdf_bytes = make_pdf(
+    student_name.strip(),
+    student_id.strip(),
+    group.strip(),
+    answers,
+    screenshots
+) if ready else b''
     safe_id=re.sub(r'[^A-Za-z0-9_-]+','_',student_id.strip())[:70]
     st.download_button('Submit answers & Download PDF',data=pdf_bytes,file_name=f'{safe_id}_Computer_Networks_LAB4_Exploratory_Analysis.pdf',mime='application/pdf',type='primary',disabled=not ready,use_container_width=True,on_click='ignore')
     st.caption('The PDF download is the submission artifact. This page does not upload your answers to MyTimes or certify server-side receipt. Upload the PDF yourself to MyTimes.')
