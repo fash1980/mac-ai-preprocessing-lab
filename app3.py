@@ -130,7 +130,7 @@ with st.expander('Instructions — read before starting',expanded=True):
     st.markdown('''1. Open **Edit Topologies.pka** in Cisco Packet Tracer and save a working copy.
 2. Switch between **Logical** and **Physical** views when required.
 3. Explore each location, click its actual devices and record findings. **Do not guess unseen IP addresses.**
-4. Answer all 21 questions in your own words. Write observed values and tests, not just device names.
+4. Answer all questions in your own words. Write observed values and tests, not just device names.
 5. Click **Submit answers & Download PDF** and upload the generated PDF to **MyTimes** alongside your completed `.pka` file, according to your instructor's directions.
 
 **Note:** The activity instructions mention `192.168.20.5` for Office-Admin, but the topology notes label that address as the Network Controller. Verify the actual target IP in Packet Tracer before pinging.''')
