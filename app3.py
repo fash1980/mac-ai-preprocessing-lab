@@ -136,7 +136,7 @@ with st.expander('Instructions — read before starting',expanded=True):
 **Note:** The activity instructions mention `192.168.20.5` for Office-Admin, but the topology notes label that address as the Network Controller. Verify the actual target IP in Packet Tracer before pinging.''')
 
 st.image(str(ROOT / 'city_topology.png'),caption='City-level topology: Home, ISP, Library and Office (from the original activity)',use_container_width=False,width=680)
-st.caption('Paste/copy is disabled inside the answer input widgets. Browser-level restrictions cannot prevent screenshots, retyping, external AI tools or developer-tool workarounds; instructor verification remains important.')
+
 
 section_name=None
 answers=[]
