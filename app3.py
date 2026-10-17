@@ -79,7 +79,7 @@ with st.sidebar:
     <li>All questions must be answered before submission.</li>
     <li>Your completed answers will be automatically generated as a PDF.</li>
     <li>Download the generated PDF after completing the worksheet.</li>
-    <li>Upload the PDF to <b>MyTimes</b> as instructed by your lecturer.</li>
+    <li>Upload the PDF to <b>MyTimes</b> along with cicso .pkt file.</li>
 </ul>
 
 </div>
