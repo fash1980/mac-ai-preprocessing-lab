@@ -204,38 +204,87 @@ else:
     screenshots.append(None)
 
 answered=sum(bool(x) for x in answers)
-st.divider()
-st.progress(answered/len(QUESTIONS),text=f'Completed: {answered} / {len(QUESTIONS)} questions')
-with st.container(border=True):
-    st.subheader('Review & Submit')
-    st.write(f'**Student:** {student_name or "Not entered"} | **ID:** {student_id or "Not entered"}')
-    missing=[i+1 for i,x in enumerate(answers) if len(x)<25]
-    if missing:st.warning('Write at least 25 characters for each answer. Incomplete: '+', '.join('Q'+str(i) for i in missing))
-    missing_screenshots = [
-    i + 1 for i, img in enumerate(screenshots)
-    if img is None
-]
 
-if missing_screenshots:
-    st.warning(
-        "Screenshot evidence missing for: " +
-        ", ".join(f"Q{i}" for i in missing_screenshots)
+st.divider()
+
+st.progress(
+    answered / len(QUESTIONS),
+    text=f"Completed: {answered} / {len(QUESTIONS)} questions"
+)
+
+with st.container(border=True):
+    st.subheader("Review & Submit")
+
+    st.write(
+        f"**Student:** {student_name or 'Not entered'} | "
+        f"**ID:** {student_id or 'Not entered'}"
     )
 
-ready = bool(
-    student_name.strip()
-    and student_id.strip()
-    and not missing
-    and not missing_screenshots
-)
-    if not ready:st.caption('Provide name, Student ID and all 21 responses to enable the download.')
-    pdf_bytes = make_pdf(
-    student_name.strip(),
-    student_id.strip(),
-    group.strip(),
-    answers,
-    screenshots
-) if ready else b''
-    safe_id=re.sub(r'[^A-Za-z0-9_-]+','_',student_id.strip())[:70]
-    st.download_button('Submit answers & Download PDF',data=pdf_bytes,file_name=f'{safe_id}_Computer_Networks_LAB4_Exploratory_Analysis.pdf',mime='application/pdf',type='primary',disabled=not ready,use_container_width=True,on_click='ignore')
-    st.caption('The PDF download is the submission artifact. This page does not upload your answers to MyTimes or certify server-side receipt. Upload the PDF yourself to MyTimes.')
+    missing = [
+        i + 1 for i, x in enumerate(answers)
+        if len(x) < 25
+    ]
+
+    if missing:
+        st.warning(
+            "Write at least 25 characters for each answer. Incomplete: "
+            + ", ".join(f"Q{i}" for i in missing)
+        )
+
+    missing_screenshots = [
+        i + 1 for i, img in enumerate(screenshots)
+        if img is None
+    ]
+
+    if missing_screenshots:
+        st.warning(
+            "Screenshot evidence missing for: "
+            + ", ".join(f"Q{i}" for i in missing_screenshots)
+        )
+
+    ready = bool(
+        student_name.strip()
+        and student_id.strip()
+        and not missing
+        and not missing_screenshots
+    )
+
+    if not ready:
+        st.caption(
+            f"Provide your name, Student ID, all {len(QUESTIONS)} "
+            "answers and required screenshots to enable PDF download."
+        )
+
+    pdf_bytes = (
+        make_pdf(
+            student_name.strip(),
+            student_id.strip(),
+            group.strip(),
+            answers,
+            screenshots
+        )
+        if ready else b""
+    )
+
+    safe_id = re.sub(
+        r"[^A-Za-z0-9_-]+",
+        "_",
+        student_id.strip()
+    )[:70]
+
+    st.download_button(
+        "Submit answers & Download PDF",
+        data=pdf_bytes,
+        file_name=f"{safe_id}_Computer_Networks_LAB4_Exploratory_Analysis.pdf",
+        mime="application/pdf",
+        type="primary",
+        disabled=not ready,
+        use_container_width=True,
+        on_click="ignore"
+    )
+
+    st.caption(
+        "Download your completed PDF and upload it to MyTimes "
+        "alongside your completed Packet Tracer activity file."
+    )
+
