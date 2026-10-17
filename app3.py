@@ -62,8 +62,26 @@ def make_pdf(name,student_id,group,answers):
     doc.build(story,onFirstPage=footer,onLaterPages=footer)
     return buf.getvalue()
 
-st.title('Computer Networks LAB 4 – Exploratory Analysis')
-st.caption('Cisco Packet Tracer | Edit Topologies | ISP • Office • Library • Home • Second Home')
+st.markdown("""
+<div style="
+    background-color: #12335B;
+    border: 2px solid #0B2545;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    font-family: Arial, sans-serif;
+    color: white;
+    margin-bottom: 25px;
+">
+    <div style="font-size: 30px; font-weight: bold;">
+        Computer Networks LAB 4
+    </div>
+    <div style="font-size: 24px; font-weight: 500; margin-top: 8px;">
+        Exploratory Analysis
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
 st.info('Use the actual Edit Topologies.pka activity to investigate every question. Type observations into the answer fields. Your completed answers can be downloaded as a PDF for submission to MyTimes.')
 with st.sidebar:
     st.header('Student details')
