@@ -101,8 +101,9 @@ st.markdown("""
     <ul style="margin: 0; padding-left: 25px;">
         <li>Use the actual <b>Edit Topologies.pka</b> activity to investigate every question.</li>
         <li>Type your observations into the provided answer fields.</li>
-        <li>Download your completed answers as a <b>PDF</b>.</li>
-        <li>Submit the generated PDF to <b>MyTimes</b>.</li>
+        <li>Copy Paste is disabled in this activity</li>
+        <li>For all the answers you need to explore Edit Topologies.pka </b>.</li>
+        
     </ul>
 </div>
 """, unsafe_allow_html=True)
