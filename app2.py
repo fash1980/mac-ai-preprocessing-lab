@@ -139,8 +139,7 @@ if submit:
             }
             db.table("practical_submissions").insert(payload).execute()
             st.success(f"Submission saved. Receipt: {submission_id[:12].upper()}. Keep this receipt.")
-        except Exception:
-            except Exception as e:
+        except Exception as e:
             import logging
             logging.exception("Practical submission failed")
             st.error(
