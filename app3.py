@@ -319,7 +319,7 @@ fully_saved = [i for i in range(1, len(QUESTIONS) + 1)
                if len((progress.get(i, {}).get("answer") or "").strip()) >= 25
                and bool(progress.get(i, {}).get("evidence_path"))]
 st.progress(len(fully_saved) / len(QUESTIONS),
-            text=f"Complete answers + screenshots SAVED in Supabase: {len(fully_saved)} / {len(QUESTIONS)}")
+            text=f"Complete answers + screenshots SAVED: {len(fully_saved)} / {len(QUESTIONS)}")
 
 # Callbacks run before widgets are instantiated on the following rerun.
 # This safely changes the current question without the Streamlit widget-state error.
