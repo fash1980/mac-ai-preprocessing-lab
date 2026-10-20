@@ -1,6 +1,6 @@
 """Computer Networks Lab 4 — durable per-question Supabase saves.
 Run: streamlit run app3.py
-Needs: lab4_questions.json, optional city_topology.png and office_topology.png.
+Needs: lab4_questions.json, typed_answer/index.html, optional topology PNG files.
 Setup: execute supabase_setup.sql, create private Storage bucket lab4-evidence,
        and configure .streamlit/secrets.toml (see secrets.example.toml).
 """
@@ -26,8 +26,10 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.platypus import HRFlowable, Image, Paragraph, SimpleDocTemplate, Spacer
 from supabase import create_client
+from streamlit.components.v1 import declare_component
 
 ROOT = Path(__file__).resolve().parent
+ANSWER_WIDGET = declare_component("lab4_secure_typed_answer", path=str(ROOT / "typed_answer"))
 logger = logging.getLogger("lab4")
 
 
@@ -359,12 +361,14 @@ if row:
 
 # Only one form/image exists per browser session. No image bytes in st.session_state.
 # Changing questions remounts form so the database answer, not stale session state, is displayed.
-with st.form(key=f"save_form_q{n}", clear_on_submit=False):
-    answer = st.text_area("Your findings", value=row.get("answer") or "", height=170,
-                          key=f"answer_entry_q{n}", placeholder="Type your observations here...")
-    image_upload = st.file_uploader("Screenshot evidence (PNG/JPG; maximum 6 MB)",
-                                    type=["png", "jpg", "jpeg"], key=f"image_upload_q{n}")
-    submitted = st.form_submit_button(f"💾 Save Progress to Supabase — Q{n}", type="primary", width="stretch")
+# Custom typing component blocks paste/copy/drop with a MAC-style warning dialog.
+# Unlike a Streamlit form, a custom component must be placed OUTSIDE st.form.
+# Only one question and one uploader remain mounted at any time.
+answer = ANSWER_WIDGET(default=row.get("answer") or "", key=f"answer_entry_q{n}")
+answer = answer if isinstance(answer, str) else (row.get("answer") or "")
+image_upload = st.file_uploader("Screenshot evidence (PNG/JPG; maximum 6 MB)",
+                                type=["png", "jpg", "jpeg"], key=f"image_upload_q{n}")
+submitted = st.button(f"💾 Save Progress to Supabase — Q{n}", type="primary", width="stretch")
 
 if submitted:
     try:
