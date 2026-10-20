@@ -384,17 +384,19 @@ if submitted:
                  "Try Save Progress again. If it repeats, inform your lecturer.")
         st.caption(f"Technical error type: {type(exc).__name__}")
 
+# Button callbacks execute before Streamlit instantiates the selectbox on the next run.
+# Never modify a widget's session-state key after the widget has been rendered.
+def navigate_question(target: int):
+    st.session_state.question_number = target
+    st.session_state.question_selector = target
+
 left, right = st.columns(2)
 with left:
-    if st.button("← Previous question", disabled=(n == 1), width="stretch"):
-        st.session_state.question_number = n - 1
-        st.session_state.question_selector = n - 1
-        st.rerun()
+    st.button("← Previous question", disabled=(n == 1), width="stretch",
+              on_click=navigate_question, args=(n - 1,))
 with right:
-    if st.button("Next question →", disabled=(n == len(QUESTIONS)), width="stretch"):
-        st.session_state.question_number = n + 1
-        st.session_state.question_selector = n + 1
-        st.rerun()
+    st.button("Next question →", disabled=(n == len(QUESTIONS)), width="stretch",
+              on_click=navigate_question, args=(n + 1,))
 
 st.divider()
 st.subheader("Review and PDF submission")
