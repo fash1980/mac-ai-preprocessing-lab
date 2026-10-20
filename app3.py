@@ -7,6 +7,7 @@ Setup: execute supabase_setup.sql, create private Storage bucket lab4-evidence,
 from __future__ import annotations
 
 import hashlib
+import logging
 import hmac
 import re
 import secrets
@@ -27,6 +28,20 @@ from reportlab.platypus import HRFlowable, Image, Paragraph, SimpleDocTemplate, 
 from supabase import create_client
 
 ROOT = Path(__file__).resolve().parent
+logger = logging.getLogger("lab4")
+
+
+def log_database_error(operation: str, exc: Exception) -> None:
+    """Log a useful error without printing any configured credential."""
+    detail = str(exc)
+    for sensitive in (globals().get("SERVICE_KEY", ""), globals().get("URL", "")):
+        if sensitive:
+            detail = detail.replace(sensitive, "[REDACTED]")
+    # Avoid logging arbitrary response data or embedded tokens verbatim.
+    detail = re.sub(r"(?:eyJ[A-Za-z0-9_-]+\.){2}[A-Za-z0-9_-]+", "[REDACTED_JWT]", detail)
+    detail = re.sub(r"sb_(?:secret|publishable)_[A-Za-z0-9_-]+", "[REDACTED_KEY]", detail)
+    logger.error("Lab4 Supabase %s failed | %s | %s", operation, type(exc).__name__, detail[:700])
+
 BUCKET = "lab4-evidence"
 MAX_UPLOAD_BYTES = 6 * 1024 * 1024
 MAX_IMAGE_SIDE = 1600
@@ -253,7 +268,7 @@ with st.sidebar:
             student_name_input = st.text_input("Full Name (required for first login)", max_chars=150)
             group_input = st.text_input("Practical Group", max_chars=80)
             pin_input = st.text_input("Recovery PIN (minimum 6 characters)", type="password")
-            login = st.form_submit_button("Start / Restore Saved Work", use_container_width=True)
+            login = st.form_submit_button("Start / Restore Saved Work", width="stretch")
         if login:
             try:
                 sid = normalize_id(student_id_input)
@@ -270,13 +285,15 @@ with st.sidebar:
                 st.rerun()
             except ValueError as exc:
                 st.error(str(exc))
-            except Exception:
-                st.error("Database connection failed. Check Supabase settings and retry; no data was changed locally.")
+            except Exception as exc:
+                log_database_error("login/register", exc)
+                st.error("Database connection failed. Your login was not confirmed. Ask your lecturer to check Streamlit app logs.")
+                st.caption(f"Diagnostic: {type(exc).__name__} (full sanitized detail is in Manage app → Logs)")
     else:
         person = st.session_state.person
         st.success(f"Logged in: {person['full_name']}")
         st.caption(f"Student ID: {person['student_id']}")
-        if st.button("Log out / Switch student", use_container_width=True):
+        if st.button("Log out / Switch student", width="stretch"):
             for key in list(st.session_state):
                 if key in ("person", "pdf_data", "question_number", "question_selector") or key.startswith(("answer_entry_q", "image_upload_q", "save_form_q")):
                     st.session_state.pop(key, None)
@@ -290,8 +307,10 @@ person = st.session_state.person
 sid = person["student_id"]
 try:
     progress = load_progress(sid)
-except Exception:
+except Exception as exc:
+    log_database_error("load progress", exc)
     st.error("Cannot read saved work from Supabase right now. Please retry later; do not assume progress is saved.")
+    st.caption(f"Diagnostic: {type(exc).__name__}")
     st.stop()
 
 fully_saved = [i for i in range(1, len(QUESTIONS) + 1)
@@ -345,7 +364,7 @@ with st.form(key=f"save_form_q{n}", clear_on_submit=False):
                           key=f"answer_entry_q{n}", placeholder="Type your observations here...")
     image_upload = st.file_uploader("Screenshot evidence (PNG/JPG; maximum 6 MB)",
                                     type=["png", "jpg", "jpeg"], key=f"image_upload_q{n}")
-    submitted = st.form_submit_button(f"💾 Save Progress to Supabase — Q{n}", type="primary", use_container_width=True)
+    submitted = st.form_submit_button(f"💾 Save Progress to Supabase — Q{n}", type="primary", width="stretch")
 
 if submitted:
     try:
@@ -360,18 +379,19 @@ if submitted:
     except ValueError as exc:
         st.error(f"NOT SAVED: {exc}")
     except Exception as exc:
+        log_database_error("save question", exc)
         st.error("NOT CONFIRMED SAVED: Supabase operation failed. Do not move on until a success message appears. "
                  "Try Save Progress again. If it repeats, inform your lecturer.")
         st.caption(f"Technical error type: {type(exc).__name__}")
 
 left, right = st.columns(2)
 with left:
-    if st.button("← Previous question", disabled=(n == 1), use_container_width=True):
+    if st.button("← Previous question", disabled=(n == 1), width="stretch"):
         st.session_state.question_number = n - 1
         st.session_state.question_selector = n - 1
         st.rerun()
 with right:
-    if st.button("Next question →", disabled=(n == len(QUESTIONS)), use_container_width=True):
+    if st.button("Next question →", disabled=(n == len(QUESTIONS)), width="stretch"):
         st.session_state.question_number = n + 1
         st.session_state.question_selector = n + 1
         st.rerun()
@@ -385,7 +405,7 @@ if len(fully_saved) < len(QUESTIONS):
     st.warning("Before final PDF: complete and save Q" + ", Q".join(missing))
 else:
     st.success("All questions and evidence are recorded in Supabase.")
-    if st.button("Prepare PDF from Supabase saved data", use_container_width=True):
+    if st.button("Prepare PDF from Supabase saved data", width="stretch"):
         try:
             with st.spinner("Retrieving saved evidence and preparing PDF..."):
                 fresh = load_progress(sid)
@@ -396,11 +416,12 @@ else:
                 st.session_state.pdf_data = make_pdf(person, fresh)
             st.success("PDF prepared from saved Supabase data.")
         except Exception as exc:
+            log_database_error("prepare PDF", exc)
             st.session_state.pdf_data = None
             st.error("PDF creation failed. Your saved Supabase progress remains intact; retry PDF preparation.")
             st.caption(f"Technical error type: {type(exc).__name__}")
     if st.session_state.get("pdf_data"):
         st.download_button("Download completed PDF", data=st.session_state.pdf_data,
                            file_name=f"{sid}_Computer_Networks_LAB4_Exploratory_Analysis.pdf",
-                           mime="application/pdf", use_container_width=True, on_click="ignore")
+                           mime="application/pdf", width="stretch", on_click="ignore")
     st.caption("The PDF download does NOT submit to MyTimes. Upload your PDF and Packet Tracer activity file there yourself.")
