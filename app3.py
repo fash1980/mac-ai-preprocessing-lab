@@ -366,7 +366,7 @@ with st.expander("Lab instructions — read before starting", expanded=False):
     st.markdown("""1. Open **Edit Topologies.pka** in Cisco Packet Tracer and save a working copy.
 2. Switch between **Logical** and **Physical** views when needed.
 3. Investigate actual configurations; **do not guess unseen IP addresses**.
-4. Enter an answer, attach screenshot evidence, and click **Save Progress to Supabase** after every question.
+4. Enter an answer, attach screenshot evidence, and click **Save Progress to** after every question.
 5. Once all questions are saved, generate the PDF and upload it and the Packet Tracer file to **MyTimes**.
 
 **Note:** Activity instructions give `192.168.20.5` as a ping target for Office-Admin, but notes call this the Network Controller. Verify the address in Packet Tracer.""")
@@ -411,7 +411,7 @@ answer = ANSWER_WIDGET(default=row.get("answer") or "", key=f"answer_entry_q{n}"
 answer = answer if isinstance(answer, str) else (row.get("answer") or "")
 image_upload = st.file_uploader("Screenshot evidence (PNG/JPG; maximum 6 MB)",
                                 type=["png", "jpg", "jpeg"], key=f"image_upload_q{n}")
-submitted = st.button(f"💾 Save Progress to Supabase — Q{n}", type="primary", width="stretch")
+submitted = st.button(f"💾 Save Progress  — Q{n}", type="primary", width="stretch")
 
 if submitted:
     try:
