@@ -321,6 +321,32 @@ fully_saved = [i for i in range(1, len(QUESTIONS) + 1)
 st.progress(len(fully_saved) / len(QUESTIONS),
             text=f"Complete answers + screenshots SAVED in Supabase: {len(fully_saved)} / {len(QUESTIONS)}")
 
+# Sidebar checklist reflects ONLY verified Supabase records, never unsaved browser edits.
+# A green check requires an answer >=25 characters AND an evidence_path.
+with st.sidebar:
+    st.divider()
+    st.subheader("Saved Question Checklist")
+    st.progress(len(fully_saved) / len(QUESTIONS),
+                text=f"{len(fully_saved)} / {len(QUESTIONS)} complete")
+    for question_i in range(1, len(QUESTIONS) + 1):
+        saved_row = progress.get(question_i, {})
+        has_answer = len((saved_row.get("answer") or "").strip()) >= 25
+        has_evidence = bool(saved_row.get("evidence_path"))
+        if has_answer and has_evidence:
+            icon, label = "✅", "Complete — saved"
+        elif saved_row:
+            icon = "⚠️"
+            missing_parts = []
+            if not has_answer:
+                missing_parts.append("answer")
+            if not has_evidence:
+                missing_parts.append("screenshot")
+            label = "Saved partially — needs " + " & ".join(missing_parts)
+        else:
+            icon, label = "❌", "Not saved"
+        st.markdown(f"{icon} **Q{question_i}** · {label}")
+    st.caption("Statuses come from Supabase. ✅ = answer (25+ characters) and screenshot both saved; ⚠️ = partial; ❌ = not saved.")
+
 with st.expander("Lab instructions — read before starting", expanded=False):
     st.markdown("""1. Open **Edit Topologies.pka** in Cisco Packet Tracer and save a working copy.
 2. Switch between **Logical** and **Physical** views when needed.
@@ -338,6 +364,8 @@ n = st.selectbox("Choose question (only ONE image uploader is active at a time)"
 st.session_state.question_number = n
 question = QUESTIONS[n - 1]
 row = progress.get(n, {})
+if st.session_state.pop("save_flash", None) == n:
+    st.success(f"✅ Your progress for Question {n} has been saved successfully in Supabase.")
 st.divider()
 st.header(question["section"])
 if question["section"] == "B. Office Cluster" and (ROOT / "office_topology.png").is_file():
@@ -378,8 +406,9 @@ if submitted:
         with st.spinner("Saving Q%d securely to Supabase..." % n):
             save_question(sid, n, answer, image_upload, row)
         st.session_state.pdf_data = None
-        st.success(f"✅ Your progress for Question {n} has been saved successfully in Supabase. You can safely return to it later.")
-        # New DB save is verifiable on next app rerun; avoid rerun here so success message remains visible.
+        # Refresh the checklist from the database immediately after a confirmed save.
+        st.session_state["save_flash"] = n
+        st.rerun()
     except ValueError as exc:
         st.error(f"NOT SAVED: {exc}")
     except Exception as exc:
