@@ -360,7 +360,7 @@ with st.sidebar:
             on_click=navigate_question,
             args=(question_i,),
         )
-    st.caption("Statuses come from Supabase. ✅ = answer (25+ characters) and screenshot both saved; ⚠️ = partial; ❌ = not saved.")
+    
 
 with st.expander("Lab instructions — read before starting", expanded=False):
     st.markdown("""1. Open **Edit Topologies.pka** in Cisco Packet Tracer and save a working copy.
