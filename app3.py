@@ -450,7 +450,7 @@ if len(fully_saved) < len(QUESTIONS):
     st.warning("Before final PDF: complete and save Q" + ", Q".join(missing))
 else:
     st.success("All questions and evidence are recorded in Supabase.")
-    if st.button("Prepare PDF from Supabase saved data", width="stretch"):
+    if st.button("Prepare PDF from saved data", width="stretch"):
         try:
             with st.spinner("Retrieving saved evidence and preparing PDF..."):
                 fresh = load_progress(sid)
