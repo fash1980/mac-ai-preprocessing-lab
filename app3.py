@@ -254,7 +254,7 @@ def make_pdf(person: dict, progress: dict[int, dict]) -> bytes:
 st.markdown("""<div style="background:#12335B;color:white;border-radius:8px;padding:20px;text-align:center;margin-bottom:18px">
 <div style="font-size:28px;font-weight:700">Computer Networks LAB 4</div>
 <div style="font-size:21px">Exploratory Analysis</div></div>""", unsafe_allow_html=True)
-st.info("Work on **one question at a time**. Click **Save Progress to Supabase** after EACH question. "
+st.info("Work on **one question at a time**. Click **Save Progress ** after EACH question. "
         "You can reconnect later with your Student ID and recovery PIN; saved answers and screenshots will return.")
 
 if "person" not in st.session_state:
