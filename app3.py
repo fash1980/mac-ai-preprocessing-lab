@@ -321,6 +321,12 @@ fully_saved = [i for i in range(1, len(QUESTIONS) + 1)
 st.progress(len(fully_saved) / len(QUESTIONS),
             text=f"Complete answers + screenshots SAVED in Supabase: {len(fully_saved)} / {len(QUESTIONS)}")
 
+# Callbacks run before widgets are instantiated on the following rerun.
+# This safely changes the current question without the Streamlit widget-state error.
+def navigate_question(target: int):
+    st.session_state.question_number = target
+    st.session_state.question_selector = target
+
 # Sidebar checklist reflects ONLY verified Supabase records, never unsaved browser edits.
 # A green check requires an answer >=25 characters AND an evidence_path.
 with st.sidebar:
@@ -344,7 +350,16 @@ with st.sidebar:
             label = "Saved partially — needs " + " & ".join(missing_parts)
         else:
             icon, label = "❌", "Not saved"
-        st.markdown(f"{icon} **Q{question_i}** · {label}")
+        # A real Streamlit button, not a link, so it works with the current
+        # logged-in session and does not expose student IDs in the URL.
+        st.button(
+            f"{icon} Q{question_i} · {label}",
+            key=f"sidebar_jump_q{question_i}",
+            width="stretch",
+            type="primary" if question_i == st.session_state.question_number else "secondary",
+            on_click=navigate_question,
+            args=(question_i,),
+        )
     st.caption("Statuses come from Supabase. ✅ = answer (25+ characters) and screenshot both saved; ⚠️ = partial; ❌ = not saved.")
 
 with st.expander("Lab instructions — read before starting", expanded=False):
@@ -417,12 +432,7 @@ if submitted:
                  "Try Save Progress again. If it repeats, inform your lecturer.")
         st.caption(f"Technical error type: {type(exc).__name__}")
 
-# Button callbacks execute before Streamlit instantiates the selectbox on the next run.
-# Never modify a widget's session-state key after the widget has been rendered.
-def navigate_question(target: int):
-    st.session_state.question_number = target
-    st.session_state.question_selector = target
-
+# Reuse the same safe callback for Previous / Next navigation.
 left, right = st.columns(2)
 with left:
     st.button("← Previous question", disabled=(n == 1), width="stretch",
