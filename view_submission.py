@@ -93,9 +93,57 @@ st.sidebar.metric('Unique students (latest)', len(records))
 st.sidebar.metric('Preliminary grading records', len(feedback_by_id))
 st.sidebar.info('Approved PDFs can be saved to private Supabase Storage. Other review fields remain in this browser session.')
 search = st.text_input('Search student name or ID')
-student_ids = sorted({str(r.get('student_id') or '') for r in records})
-chosen_id = st.selectbox('Filter by student ID', ['All students'] + student_ids)
-filtered = [r for r in records if
+# Identify completed students from approved PDFs saved in Supabase.
+@st.cache_data(ttl=60)
+def get_completed_submission_ids(url, key):
+    db = get_client(url, key)
+    completed = set()
+
+    for row in records:
+        submission_id = str(row['id'])
+        pdf_name = f"MAC_Tutorial4_Review_{submission_id}.pdf"
+        folder = f"submissions/{submission_id}"
+
+        try:
+            files = db.storage.from_(
+                'mac-tutorial-reviewed-pdfs'
+            ).list(folder)
+
+            if any(f.get('name') == pdf_name for f in files):
+                completed.add(submission_id)
+        except Exception:
+            pass
+
+    return completed
+
+
+completed_ids = get_completed_submission_ids(url, key)
+
+pending_records = [
+    r for r in records
+    if str(r['id']) not in completed_ids
+]
+
+pending_student_ids = sorted({
+    str(r.get('student_id') or '')
+    for r in pending_records
+})
+
+st.sidebar.metric('Completed Reviews', len(completed_ids))
+st.sidebar.metric('Pending Reviews', len(pending_records))
+
+chosen_id = st.selectbox(
+    'Select Pending Student ID',
+    ['All students'] + pending_student_ids
+)
+
+with st.expander('View Completed Student IDs'):
+    for r in records:
+        if str(r['id']) in completed_ids:
+            st.write(
+                f"✅ {r.get('student_id')} — {r.get('student_name')}"
+            )
+filtered = [r for r in pending_records if
             (not search.strip() or search.casefold().strip() in str(r.get('student_name') or '').casefold()
              or search.casefold().strip() in str(r.get('student_id') or '').casefold())
             and (chosen_id == 'All students' or str(r.get('student_id') or '') == chosen_id)]
