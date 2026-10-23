@@ -1,176 +1,196 @@
 import json
-from datetime import datetime, timezone
-from pathlib import Path
 import streamlit as st
-import streamlit.components.v1 as components
-import numpy as np
-import pandas as pd
-import plotly.graph_objects as go
-import streamlit as st
-typing_input = components.declare_component(
-    "typing_input",
-    path=str(Path(__file__).parent / "typing_input")
-)
+from supabase import create_client
+
 st.set_page_config(
-    page_title="Tutorial 4 AAI | Data Wrangling",
-    page_icon="preprocessing_icon.png.jpg",
-    layout="wide"
+    page_title="MAC Tutorial 4 | Submission Viewer",
+    page_icon="📋",
+    layout="wide",
 )
-SCENARIOS = json.loads((Path(__file__).parent / 'scenarios.json').read_text(encoding='utf-8'))
 
 st.title("Machine Learning Preprocessing Tutorial Week 4")
-
+st.subheader("Student Submission Viewer")
+st.caption("Read-only view of saved submissions from Supabase.")
 
 @st.cache_resource
-def database_client(url, secret):
-    from supabase import create_client
-    return create_client(url, secret)
+def get_supabase_client(url: str, key: str):
+    return create_client(url, key)
 
-def database_ready():
+def get_credentials():
     try:
-        return bool(st.secrets['SUPABASE_URL'] and st.secrets['SUPABASE_SERVICE_ROLE_KEY'])
+        url = st.secrets["SUPABASE_URL"]
+        key = st.secrets["SUPABASE_SERVICE_ROLE_KEY"]
+        if url and key:
+            return url, key
     except (KeyError, FileNotFoundError):
-        return False
+        pass
+    return None, None
 
-if not database_ready():
-    st.warning("Practice mode: database not connected. Responses will NOT be stored permanently. Connect Supabase before classroom use.")
+def fetch_submissions():
+    url, key = get_credentials()
+    if not url or not key:
+        st.error(
+            "Supabase credentials are missing. Add SUPABASE_URL and "
+            "SUPABASE_SERVICE_ROLE_KEY to Streamlit secrets."
+        )
+        st.stop()
 
-with st.sidebar:
-    st.header("Student details")
-    student_id = st.text_input("Student ID", placeholder="e.g., 0123456", key='student_id')
-    student_name = st.text_input("Name", key='student_name')
-    st.divider()
-    selection = st.radio("Choose a scenario", options=list(range(len(SCENARIOS))), format_func=lambda i: f"Scenario {i+1}")
-    
+    db = get_supabase_client(url, key)
+    # Read in batches so the viewer is not limited to the first 1,000 rows.
+    records = []
+    page_size = 500
+    start = 0
 
-scenario = SCENARIOS[selection]
-st.subheader(scenario['title'])
-st.write(scenario['description'])
-if scenario['table']:
-    st.dataframe(pd.DataFrame(scenario['table'][1:],columns=scenario['table'][0]),hide_index=True,use_container_width=True)
+    while True:
+        response = (
+            db.table("tutorial_submissions")
+            .select("id, student_id, student_name, answers, submitted_at")
+            .order("id", desc=False)
+            .range(start, start + page_size - 1)
+            .execute()
+        )
+        batch = response.data or []
+        records.extend(batch)
+        if len(batch) < page_size:
+            break
+        start += page_size
 
-# Interactive illustrations accompany, not replace, the exact scenario questions.
-if selection == 0:
-    st.caption("Explore glucose imputation sensitivity; the extreme value should be investigated rather than assumed erroneous.")
-    readings = np.array([180,150,900,110], dtype=float)
-    method = st.selectbox("Compare glucose imputation method", ["Mean", "Median"], key='imputation')
-    estimate = float(readings.mean() if method=='Mean' else np.median(readings))
-    st.metric("Estimated P02 glucose", f"{estimate:.1f}")
-    st.caption("Please remember that this activity is for demonstration purposes only. In actual machine learning model development, imputation should be fitted using the training data only to prevent data leakage and ensure reliable model evaluation.")
-elif selection == 1:
-    st.caption("Explore the effect of scaling on transaction amounts.")
-    amounts = np.array([100,150,200,250,10000],dtype=float)
-    choice=st.selectbox("Scaling",["Original", "Min–Max", "Robust (median / IQR)"],key='scaling')
-    if choice=='Min–Max': values=(amounts-amounts.min())/(amounts.max()-amounts.min())
-    elif choice.startswith('Robust'):
-        q25,q75=np.quantile(amounts,[.25,.75]); values=(amounts-np.median(amounts))/(q75-q25)
-    else: values=amounts
-    st.bar_chart(pd.DataFrame({'Account':list('ABCDE'),'Value':values}).set_index('Account'))
-    
-elif selection == 2:
-    st.caption("PIID pressure-injury images. I2 is artificially blurred; I3 is an exact copy; I4 has an intentionally incorrect teaching label. Not for clinical interpretation.")
-    image_dir = Path(__file__).parent / "scenario3_images"
-    image_files = [
-        "I1_reference.jpg",
-        "I2_blurred.jpg",
-        "I3_duplicate.jpg",
-        "I4_wrong_label.jpg",
+    return records
+
+try:
+    records = fetch_submissions()
+except Exception as exc:
+    st.error("Could not retrieve submissions from Supabase.")
+    st.caption(f"Technical detail: {exc}")
+    st.stop()
+
+if not records:
+    st.info("No submissions were found in tutorial_submissions.")
+    st.stop()
+
+# Optional search/filter controls.
+left, middle, right = st.columns([2, 2, 1])
+with left:
+    search = st.text_input("Search student name or ID", placeholder="Enter name or ID")
+with middle:
+    ids = sorted({str(r.get("student_id") or "") for r in records})
+    selected_id = st.selectbox("Filter by student ID", ["All students"] + ids)
+with right:
+    st.metric("Total submissions", len(records))
+
+filtered = records
+if search.strip():
+    term = search.strip().casefold()
+    filtered = [
+        r for r in filtered
+        if term in str(r.get("student_name") or "").casefold()
+        or term in str(r.get("student_id") or "").casefold()
     ]
-    captions = [
-        "I1 — Reference image (PIID, stage 1 filename)",
-        "I2 — Artificially blurred copy of I1",
-        "I3 — Exact duplicate of I1 (different filename)",
-        "I4 — Different PIID image (stage 3 filename), deliberately mislabelled 'stage 1' for this exercise",
-    ]
-    cols = st.columns(4)
-    for col, filename, caption in zip(cols, image_files, captions):
-        with col:
-            st.image(str(image_dir / filename), caption=caption, use_container_width=True)
-elif selection == 3:
-    t=np.linspace(0,2,320)
-    clean=np.sin(2*np.pi*4*t)+0.45*np.exp(-((t-1.06)/.035)**2)
-    rng=np.random.default_rng(2026)
-    noisy=clean+rng.normal(0,.30,t.shape)
-    span=st.slider("Smoothing window",3,71,29,2)
-    filtered=np.convolve(noisy,np.ones(span)/span,mode='same')
-    fig=go.Figure()
-    for x,label in [(clean,'Clean (synthetic)'),(noisy,'Noisy (synthetic)'),(filtered,'Smoothed')]:fig.add_trace(go.Scatter(x=t,y=x,name=label,mode='lines'))
-    fig.update_layout(height=310,xaxis_title='Time (s)',yaxis_title='Amplitude (a.u.)')
-    st.plotly_chart(fig,use_container_width=True)
-    st.caption('Synthetic educational signals, not actual EEG recordings.')
-elif selection == 4:
-    st.caption('The cosine-similarity scores in the table are provided for reasoning. They are illustrative, not computed by a live embedding model.')
-    st.info('Compare T1/T2/T3 by the stated scores, then consider the effect of removing negation or preprocessing pretrained embeddings.')
-    
-    st.info("""
-    **Understanding Cosine Similarity**
+if selected_id != "All students":
+    filtered = [r for r in filtered if str(r.get("student_id") or "") == selected_id]
 
-    Text embeddings convert sentences into numerical vectors
-    representing their meaning.
+if not filtered:
+    st.warning("No submissions match these filters.")
+    st.stop()
 
-    Cosine similarity measures the similarity between two
-    vectors based on the angle between them.
+# Use session state to navigate one submission at a time.
+if "submission_index" not in st.session_state:
+    st.session_state.submission_index = 0
+st.session_state.submission_index = min(
+    st.session_state.submission_index, len(filtered) - 1
+)
 
-    **How to interpret the scores:**
-    - Close to 1: Very similar meaning
-    - Close to 0: Little or no semantic similarity
-    - Close to -1: Opposite vector directions
-      (not necessarily opposite meanings)
+def previous_submission():
+    st.session_state.submission_index = max(0, st.session_state.submission_index - 1)
 
-    **Example from the table:**
-    - T1 (0.92): High similarity
-    - T2 (0.41): Lower similarity
-    - T3 (0.86): High similarity despite being in Malay
-
-    **Note:** A higher score suggests greater semantic
-    similarity, but does not guarantee identical meaning.
-    """)
-
-elif selection == 5:
-    st.caption('Compare workflow orders: train-set-only fitting vs full-dataset preprocessing.')
-    st.code('Incorrect: entire dataset → impute / scale → row-wise split → train / evaluate\nCorrect: patient-wise split → fit imputer and scaler on training data → transform test → evaluate',language='text')
-elif selection == 6:
-    st.caption('Prediction-time audit: select which inputs are actually available before the fraud decision.')
-    st.info('The investigation outcome is entered two days later. Transaction counts should use only history up to the prediction time.')
-elif selection == 7:
-    chart=pd.DataFrame({'Model':['A','B'],'Training':[94,99],'Validation':[91,96],'Final test':[89,73]}).set_index('Model')
-    st.bar_chart(chart)
-    st.caption('Illustrative model accuracies; differences alone do not prove leakage or overfitting.')
-
-st.divider()
-st.markdown('#### Type your analysis')
-for j, question in enumerate(scenario['questions']):
-    st.markdown(f'**{question}**')
-    answer_key = f'answer_{selection}_{j}'
-
-    typed = typing_input(
-        value=st.session_state.get(answer_key, ''),
-        key=f'custom_{answer_key}',
-        default=st.session_state.get(answer_key, '')
+def next_submission():
+    st.session_state.submission_index = min(
+        len(filtered) - 1, st.session_state.submission_index + 1
     )
 
-    if typed is not None:
-        st.session_state[answer_key] = typed
+nav1, nav2, nav3 = st.columns([1, 2, 1])
+with nav1:
+    st.button(
+        "← Previous",
+        on_click=previous_submission,
+        disabled=st.session_state.submission_index == 0,
+        use_container_width=True,
+    )
+with nav2:
+    st.markdown(
+        f"<div style='text-align:center;padding-top:8px'><b>Submission "
+        f"{st.session_state.submission_index + 1} of {len(filtered)}</b></div>",
+        unsafe_allow_html=True,
+    )
+with nav3:
+    st.button(
+        "Next →",
+        on_click=next_submission,
+        disabled=st.session_state.submission_index >= len(filtered) - 1,
+        use_container_width=True,
+    )
 
-answers={s['title']:{q:st.session_state.get(f'answer_{i}_{j}','').strip() for j,q in enumerate(s['questions'])} for i,s in enumerate(SCENARIOS)}
-answered=sum(bool(a) for v in answers.values() for a in v.values())
-total=sum(len(s['questions']) for s in SCENARIOS)
-st.progress(answered/total,text=f'Questions answered: {answered} / {total}')
+record = filtered[st.session_state.submission_index]
 
-with st.expander('Review and submit'):
-    st.write('Student ID:',student_id or '(missing)')
-    st.write('Name:',student_name or '(missing)')
-    st.write('Completed answers:',answered,'/',total)
-    if answered != total:
-        st.warning('Complete all scenario questions before submitting.')
-    if not database_ready():
-        st.info('Submission disabled until Supabase credentials are configured. You can still test the activities.')
-    if st.button('Submit all answers',type='primary',disabled=(not database_ready() or not student_id.strip() or not student_name.strip() or answered != total)):
-        payload={'student_id':student_id.strip(),'student_name':student_name.strip(),'answers':answers,'submitted_at':datetime.now(timezone.utc).isoformat()}
-        try:
-            db=database_client(st.secrets['SUPABASE_URL'],st.secrets['SUPABASE_SERVICE_ROLE_KEY'])
-            db.table('tutorial_submissions').insert(payload).execute()
-            st.success('Your answers were submitted successfully.')
-            st.session_state['submitted']=True
-        except Exception:
-            st.error('Submission failed. Inform your tutor; the answers have not been confirmed as saved.')
+st.divider()
+student_col, id_col, submission_col = st.columns([2, 1, 1])
+with student_col:
+    st.markdown("**Student name**")
+    st.write(record.get("student_name") or "Not provided")
+with id_col:
+    st.markdown("**Student ID**")
+    st.write(record.get("student_id") or "Not provided")
+with submission_col:
+    st.markdown("**Submission record**")
+    st.write(f"ID: {record.get('id', 'N/A')}")
+    if record.get("submitted_at"):
+        st.caption(f"Submitted: {record['submitted_at']}")
+
+answers = record.get("answers") or {}
+if isinstance(answers, str):
+    try:
+        answers = json.loads(answers)
+    except json.JSONDecodeError:
+        st.error("The answers field is not valid JSON.")
+        st.code(answers)
+        st.stop()
+
+if not isinstance(answers, dict):
+    st.warning("The saved answers are not in the expected JSON object format.")
+    st.json(answers)
+    st.stop()
+
+total_questions = 0
+answered_questions = 0
+
+for scenario_title, questions in answers.items():
+    if not isinstance(questions, dict):
+        with st.expander(str(scenario_title), expanded=True):
+            st.write(questions)
+        continue
+
+    total_questions += len(questions)
+    answered_questions += sum(
+        1 for answer in questions.values()
+        if answer is not None and str(answer).strip()
+    )
+
+st.progress(
+    answered_questions / total_questions if total_questions else 0,
+    text=f"Answered: {answered_questions} / {total_questions} questions",
+)
+
+for scenario_title, questions in answers.items():
+    with st.expander(str(scenario_title), expanded=True):
+        if isinstance(questions, dict):
+            for question, answer in questions.items():
+                st.markdown(f"**{question}**")
+                if answer is None or not str(answer).strip():
+                    st.info("No answer submitted.")
+                else:
+                    st.markdown(str(answer))
+                st.divider()
+        else:
+            st.write(questions)
+
+st.caption("This page is read-only. It does not edit or delete student submissions.")
