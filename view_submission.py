@@ -91,7 +91,7 @@ records = sorted(latest.values(), key=lambda r: (str(r.get('student_name') or ''
 
 st.sidebar.metric('Unique students (latest)', len(records))
 st.sidebar.metric('Preliminary grading records', len(feedback_by_id))
-st.sidebar.info('No Supabase writes. Export an approved PDF before closing the session.')
+st.sidebar.info('Approved PDFs can be saved to private Supabase Storage. Other review fields remain in this browser session.')
 search = st.text_input('Search student name or ID')
 student_ids = sorted({str(r.get('student_id') or '') for r in records})
 chosen_id = st.selectbox('Filter by student ID', ['All students'] + student_ids)
@@ -303,8 +303,45 @@ def make_pdf():
     doc.build(story)
     return output.getvalue()
 
+# Generate one PDF from the currently visible teacher edits.
 st.divider()
-st.download_button('⬇ Download Reviewed Submission (PDF)', data=make_pdf(),
-                   file_name=f'MAC_Tutorial4_Review_{rec_id}.pdf', mime='application/pdf',
-                   type='primary', use_container_width=True)
-st.warning('Feedback is NOT saved to Supabase. This viewer uses a service-role key: keep the app private and restrict teacher/admin access. Never put that key in GitHub.')
+pdf_bytes = make_pdf()
+pdf_filename = f"MAC_Tutorial4_Review_{rec_id}.pdf"
+BUCKET = 'mac-tutorial-reviewed-pdfs'
+# Stable path, specific to the submission; avoids accidental cross-student overwrite.
+storage_path = f"submissions/{rec_id}/{pdf_filename}"
+
+col_save, col_download = st.columns(2)
+with col_save:
+    can_save = bool(review_rows) and approved == len(review_rows)
+    if st.button('💾 Save Approved PDF to Supabase', type='primary',
+                 use_container_width=True, disabled=not can_save):
+        try:
+            db = get_client(url, key)
+            db.storage.from_(BUCKET).upload(
+                path=storage_path,
+                file=pdf_bytes,
+                file_options={
+                    'content-type': 'application/pdf',
+                    'upsert': 'true',
+                }
+            )
+            st.session_state[f'saved_pdf_{rec_id}'] = storage_path
+            st.success('Approved PDF saved to private Supabase Storage.')
+            st.caption(f'Bucket: {BUCKET} | Path: {storage_path}')
+        except Exception as exc:
+            st.error(f'Could not save PDF: {exc}')
+with col_download:
+    st.download_button('⬇ Download Reviewed Submission (PDF)',
+                       data=pdf_bytes, file_name=pdf_filename,
+                       mime='application/pdf', use_container_width=True)
+
+if not can_save:
+    st.info('Approve every question before saving the PDF to Supabase.')
+st.warning(
+    'PDFs are stored privately, not publicly shared. '
+    'Teacher comments and scores are NOT separately saved to a database; '
+    'after changing any feedback, save the approved PDF again. '
+    'Keep this service-role-key app restricted to teachers/admins. '
+    'Never commit the service-role key to GitHub.'
+)
