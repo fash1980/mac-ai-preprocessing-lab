@@ -259,10 +259,41 @@ def make_pdf():
                 r = next((x for x in review_rows if x['scenario'] == scenario and x['question'] == question), None)
                 if not r:
                     continue
-                story.extend([p(question), p('Student answer: ' + (str(answer) if answer is not None else '[No answer]')),
-                              p(f"Marks: {st.session_state[r['score_key']]}/2"),
-                              p('Teacher comment: ' + (st.session_state[r['comment_key']].strip() or '[No comment]')),
-                              p('Review status: ' + ('Approved' if st.session_state[r['approved_key']] else 'Pending teacher approval'))])
+                story.extend([
+                    p(question),
+                    p('Student answer: ' + (
+                        str(answer) if answer is not None else '[No answer]'
+                    )),
+                    p(f"Marks: {st.session_state[r['score_key']]}/2")
+                ])
+                
+                feedback_box = Table(
+                    [
+                        [p('Teacher comment: ' + (
+                            st.session_state[r['comment_key']].strip()
+                            or '[No comment]'
+                        ))],
+                        [p('Review status: ' + (
+                            'Approved'
+                            if st.session_state[r['approved_key']]
+                            else 'Pending teacher approval'
+                        ))]
+                    ],
+                    colWidths=[165*mm],
+                    hAlign='LEFT'
+                )
+                
+                feedback_box.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#EEF3F6')),
+                    ('LEFTPADDING', (0, 0), (-1, -1), 12),
+                    ('RIGHTPADDING', (0, 0), (-1, -1), 12),
+                    ('TOPPADDING', (0, 0), (-1, -1), 7),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 7),
+                    ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ]))
+
+story.append(feedback_box)
+story.append(Spacer(1, 10))
         scenario_comment = st.session_state.get(widget_key('scenario', scenario), '').strip()
         if scenario_comment:
             story.append(p('Scenario feedback: ' + scenario_comment))
