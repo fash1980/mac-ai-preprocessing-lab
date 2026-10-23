@@ -1,5 +1,5 @@
 """Teacher-only MAC Tutorial 4 review viewer.
-Put preliminary_grading_feedback.json next to this file in GitHub.
+Put contextual_feedback_review.json next to this file in GitHub.
 Requires streamlit, supabase, reportlab and Streamlit Secrets.
 Preliminary suggestions are NEVER auto-approved or written to Supabase.
 """
@@ -23,7 +23,7 @@ st.title('Machine Learning Preprocessing Tutorial Week 4')
 st.subheader('Teacher Review & Preliminary Feedback')
 st.caption('Only the latest submission per student is shown. Scores and comments are preliminary until approved by the teacher. Reviews remain in this browser session.')
 
-FEEDBACK_FILE = Path(__file__).parent / 'preliminary_grading_feedback.json'
+FEEDBACK_FILE = Path(__file__).parent / 'contextual_feedback_review.json'
 
 @st.cache_resource
 def get_client(url, key):
@@ -56,7 +56,7 @@ except (KeyError, FileNotFoundError):
     st.stop()
 
 if not FEEDBACK_FILE.exists():
-    st.error('Missing preliminary_grading_feedback.json. Upload it to the same GitHub folder as this Python file.')
+    st.error('Missing contextual_feedback_review.json. Upload it to the same GitHub folder as this Python file.')
     st.stop()
 try:
     feedback_by_id = load_feedback(FEEDBACK_FILE.read_bytes())
