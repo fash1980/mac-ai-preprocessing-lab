@@ -292,8 +292,8 @@ def make_pdf():
                     ('VALIGN', (0, 0), (-1, -1), 'TOP'),
                 ]))
 
-story.append(feedback_box)
-story.append(Spacer(1, 10))
+                story.append(feedback_box)
+                story.append(Spacer(1, 10))
         scenario_comment = st.session_state.get(widget_key('scenario', scenario), '').strip()
         if scenario_comment:
             story.append(p('Scenario feedback: ' + scenario_comment))
