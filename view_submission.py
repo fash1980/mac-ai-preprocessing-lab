@@ -9,7 +9,7 @@ from datetime import datetime
 from io import BytesIO
 from pathlib import Path
 from xml.sax.saxutils import escape
-
+from reportlab.platypus import Table, TableStyle
 import streamlit as st
 from supabase import create_client
 from reportlab.lib import colors
@@ -219,11 +219,39 @@ def make_pdf():
     def p(value, style='SmallCustom'):
         return Paragraph(escape(str(value if value is not None else '')).replace('\n', '<br/>'), styles[style])
     status = 'APPROVED' if approved == len(review_rows) else 'PRELIMINARY — TEACHER REVIEW REQUIRED'
-    story = [p('MAC Tutorial Week 4 — Reviewed Submission', 'ReportTitleCustom'),
-             p('Status: ' + status), p('Student: ' + str(record.get('student_name') or 'Not provided')),
-             p('Student ID: ' + str(record.get('student_id') or 'Not provided')),
-             p('Submission record: ' + rec_id), p('Submitted: ' + str(record.get('submitted_at') or '')),
-             p(f'Marks: {points}/{2*len(review_rows)}'), Spacer(1, 8)]
+    story = [
+        p('MAC Tutorial Week 4 — Reviewed Submission', 'ReportTitleCustom')
+    ]
+    
+    student_details = [
+        ['STATUS', status],
+        ['STUDENT', str(record.get('student_name') or 'Not provided')],
+        ['STUDENT ID', str(record.get('student_id') or 'Not provided')],
+        ['SUBMISSION RECORD', rec_id],
+        ['SUBMITTED', str(record.get('submitted_at') or '')],
+        ['MARKS', f'{points}/{2*len(review_rows)}']
+    ]
+    
+    info_table = Table(
+        student_details,
+        colWidths=[42*mm, 128*mm],
+        hAlign='LEFT'
+    )
+    
+    info_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#EEF3F6')),
+        ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#456681')),
+        ('TEXTCOLOR', (1, 0), (1, -1), colors.HexColor('#172B4D')),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTNAME', (1, 0), (1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 0), (-1, -1), 9.5),
+        ('TOPPADDING', (0, 0), (-1, -1), 9),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 9),
+        ('LEFTPADDING', (0, 0), (-1, -1), 12),
+    ]))
+    
+    story.append(info_table)
+    story.append(Spacer(1, 12))
     for scenario, questions in answers.items():
         story.append(p(scenario, 'ScenarioCustom'))
         if isinstance(questions, dict):
