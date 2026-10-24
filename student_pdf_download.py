@@ -15,14 +15,42 @@ st.set_page_config(page_title="MAC Tutorial 4 | Reviewed PDF", page_icon="📄",
 
 st.markdown("""
 <style>
-.block-container {max-width: 650px; padding-top: 3rem;}
-h1 {color: #163c53; font-size: 2rem !important;}
+.block-container {max-width: 720px; padding-top: 2.2rem;}
+h1 {color: #173b50; font-size: 2rem !important; letter-spacing: -.6px;}
 div[data-testid="stAlert"] {border-radius: 12px;}
+div[data-testid="stForm"] {border-radius: 16px; border-color: #dae8eb; padding: 1.25rem;}
+div.stButton > button[kind="primary"], div.stDownloadButton > button[kind="primary"] {
+  background: #116b75; border-color: #116b75; border-radius: 10px;
+}
 </style>
 """, unsafe_allow_html=True)
-st.title("📄 Your Reviewed Tutorial")
-st.write("MAC Tutorial Week 4 — Download your teacher-reviewed PDF")
-st.caption("Each Student ID may claim its PDF once. Keep the downloaded file safe.")
+
+# Inline illustration: no extra image file or image package required.
+st.html("""
+<div style="border-radius:20px;background:linear-gradient(120deg,#e9f5f4,#f3f8fc);padding:12px 20px;margin-bottom:14px">
+<svg role="img" aria-label="Illustration of a reviewed report with checkmarks and a download arrow"
+     viewBox="0 0 600 175" style="width:100%;height:auto;display:block" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="465" cy="81" r="74" fill="#d6eeea"/>
+  <circle cx="136" cy="43" r="10" fill="#b6dfdc"/>
+  <circle cx="194" cy="132" r="7" fill="#e1c978"/>
+  <path d="M37 137h255" stroke="#bfdcde" stroke-width="3" stroke-linecap="round"/>
+  <path d="M355 145l4-108c1-8 6-12 14-12h123l31 31v89c0 8-5 13-13 13H369c-9 0-14-4-14-13Z"
+        fill="#ffffff" stroke="#a8ced0" stroke-width="3"/>
+  <path d="M496 25v33h31" fill="#e8f3f2" stroke="#a8ced0" stroke-width="3"/>
+  <path d="M387 74l8 8 14-16M387 106l8 8 14-16" stroke="#16948d" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M426 75h57M426 107h45" stroke="#a9bdc8" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="524" cy="131" r="31" fill="#116b75"/>
+  <path d="M524 112v28m-11-11 11 11 11-11M511 148h26" stroke="white" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <rect x="54" y="36" width="245" height="16" rx="8" fill="#6caaa8" opacity=".7"/>
+  <rect x="54" y="67" width="207" height="12" rx="6" fill="#9abfc1" opacity=".65"/>
+  <rect x="54" y="90" width="178" height="12" rx="6" fill="#9abfc1" opacity=".45"/>
+</svg>
+</div>
+""")
+
+st.title("MAC Tutorial 4 – Your Feedback Report")
+st.write("Your tutorial has been reviewed. Enter your Student ID below to get your feedback report.")
+st.info("You can download your report only once, so please save the PDF on your device.", icon="ℹ️")
 
 BUCKET = "mac-tutorial-reviewed-pdfs"
 
@@ -84,8 +112,8 @@ if "pdf_ready" not in st.session_state:
     st.session_state.pdf_ready = False
 
 with st.form("download_request"):
-    entered_id = st.text_input("Student ID", placeholder="Enter your Student ID", max_chars=40).strip()
-    requested = st.form_submit_button("Find My Reviewed PDF", type="primary", use_container_width=True)
+    entered_id = st.text_input("Student ID", placeholder="e.g. your university Student ID", max_chars=40).strip()
+    requested = st.form_submit_button("Get My Feedback Report", type="primary", use_container_width=True)
 
 if requested:
     st.session_state.pdf_ready = False
@@ -93,20 +121,20 @@ if requested:
     student_id = entered_id.upper()
 
     if not re.fullmatch(r"[A-Z0-9_-]{3,40}", student_id):
-        st.warning("Please enter a valid Student ID.")
+        st.warning("Please check your Student ID and try again.")
     else:
         try:
             # Same canonical ID must be used for lookup and one-time claim.
             if already_claimed(student_id):
-                st.warning("You have already downloaded your PDF. Please contact your lecturer if you need help.")
+                st.warning("This report has already been downloaded. If you had a problem saving it, please contact your lecturer.")
             else:
                 record = find_latest_submission(student_id)
                 if not record:
-                    st.warning("No matching approved PDF is available for this Student ID.")
+                    st.warning("We couldn't find a report for this Student ID. Please check the ID you entered.")
                 else:
                     name, path, data = read_approved_pdf(record["id"])
                     if data is None:
-                        st.info("Your reviewed PDF is not available yet. Please check again later.")
+                        st.info("Your feedback report isn't ready yet. Please check back later.")
                     else:
                         claimed = db.rpc("claim_tutorial_pdf_download", {
                             "p_student_id": student_id,
@@ -117,15 +145,15 @@ if requested:
                             st.session_state.pdf_ready = True
                             st.session_state.pdf_bytes = data
                             st.session_state.pdf_filename = name
-                            st.success("PDF ready. Please download and save it now; this is your only access session.")
+                            st.success("Your report is ready! Click the download button below and save the file.")
                         else:
-                            st.warning("You have already downloaded your PDF, or this review is no longer available.")
+                            st.warning("This report has already been accessed or is no longer available. Please contact your lecturer.")
         except Exception:
-            st.error("Unable to process the request right now. Please contact your lecturer.")
+            st.error("Something went wrong. Please try again later or contact your lecturer.")
 
 if st.session_state.pdf_ready:
     st.download_button(
-        "⬇ Download My Reviewed PDF",
+        "⬇ Download My Feedback Report",
         data=st.session_state.pdf_bytes,
         file_name=st.session_state.pdf_filename,
         mime="application/pdf",
@@ -135,4 +163,4 @@ if st.session_state.pdf_ready:
     )
 
 st.divider()
-st.caption("For download problems, please contact your lecturer with your Student ID. Do not share your PDF.")
+st.caption("Having trouble? Contact your lecturer and include your Student ID.")
